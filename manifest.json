@@ -1,9 +1,9 @@
 {
-  "name": "WHM Smart AI của Vinh",
+  "name": "WHM Smart AI Vinh",
   "short_name": "WHM PRO",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#020617",
   "theme_color": "#6366f1",
   "icons": [
     {
