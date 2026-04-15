@@ -6,156 +6,114 @@
     <title>WHM PRO | Smart Warehouse</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="WHM PRO">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2274/2274532.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #020617; 
-            color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .glass-card { 
-            background: rgba(30, 41, 59, 0.5); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.08); 
-        }
-        .gradient-text { 
-            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
-        .status-dot { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        
-        /* Hiệu ứng bấm nút */
-        .btn-active:active { transform: scale(0.95); transition: 0.1s; }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .gradient-text { background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-active:active { transform: scale(0.95); }
+        #reader { width: 100%; border-radius: 20px; overflow: hidden; display: none; }
     </style>
 </head>
 <body class="p-4 pb-28">
 
     <header class="flex justify-between items-center mb-8 pt-2">
         <div>
-            <p class="text-[10px] font-bold text-indigo-400 tracking-[0.2em] uppercase">WHM Pro AI System By Vinh</p>
-            <h1 class="text-2xl font-extrabold tracking-tight">WHM <span class="gradient-text">SMART PRO</span></h1>
+            <p class="text-[10px] font-bold text-indigo-400 tracking-[0.2em] uppercase">WHM AI System By Vinh</p>
+            <h1 class="text-2xl font-extrabold">WHM <span class="gradient-text">SMART PRO</span></h1>
         </div>
-        <div class="relative">
-            <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                <span class="text-indigo-400 font-bold">V</span>
-            </div>
-            <div class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-4 border-[#020617] status-dot"></div>
-        </div>
+        <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-indigo-400">V</div>
     </header>
+
+    <div id="scanner-container" class="mb-6 hidden">
+        <div class="glass-card p-2 rounded-[2rem]">
+            <div id="reader"></div>
+            <button onclick="stopScanner()" class="w-full py-3 text-red-400 font-bold text-xs uppercase tracking-widest">Đóng Camera</button>
+        </div>
+    </div>
 
     <section class="grid grid-cols-2 gap-4 mb-8">
         <div class="glass-card p-5 rounded-[2rem]">
-            <p class="text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-1">Tổng tồn kho</p>
-            <h3 class="text-2xl font-black italic" id="total-qty">14,250 <span class="text-[10px] text-slate-500 not-italic font-medium">Unit</span></h3>
+            <p class="text-slate-400 text-[9px] font-bold uppercase mb-1">Tồn kho</p>
+            <h3 class="text-xl font-black italic">14,250 <span class="text-[10px] text-slate-500 not-italic">Unit</span></h3>
         </div>
         <div class="glass-card p-5 rounded-[2rem]">
-            <p class="text-slate-400 text-[9px] font-bold uppercase tracking-wider mb-1">Mã vật tư</p>
-            <h3 class="text-2xl font-black italic" id="total-sku">842 <span class="text-[10px] text-slate-500 not-italic font-medium">SKU</span></h3>
+            <p class="text-slate-400 text-[9px] font-bold uppercase mb-1">Vật tư</p>
+            <h3 class="text-xl font-black italic">842 <span class="text-[10px] text-slate-500 not-italic">SKU</span></h3>
         </div>
     </section>
 
-    <section class="space-y-4 mb-8">
-        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em] px-1">Điều khiển vận hành</h2>
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="handleAction('Nhập kho')" class="btn-active flex flex-col items-center justify-center p-6 rounded-[2.5rem] bg-indigo-600 shadow-xl shadow-indigo-600/20">
-                <span class="text-3xl mb-2">📥</span>
-                <span class="font-extrabold text-sm text-white">NHẬP KHO</span>
-            </button>
-            <button onclick="handleAction('Xuất kho')" class="btn-active flex flex-col items-center justify-center p-6 rounded-[2.5rem] glass-card border-white/10">
-                <span class="text-3xl mb-2">📤</span>
-                <span class="font-extrabold text-sm text-white">XUẤT KHO</span>
-            </button>
-        </div>
+    <section class="grid grid-cols-2 gap-4 mb-8 text-center">
+        <button onclick="alert('Mời bạn nhấn nút Camera để quét mã nhập kho')" class="btn-active p-6 rounded-[2.5rem] bg-indigo-600 shadow-xl shadow-indigo-600/20">
+            <span class="text-2xl block mb-1">📥</span>
+            <span class="font-extrabold text-sm">NHẬP KHO</span>
+        </button>
+        <button onclick="alert('Mời bạn nhấn nút Camera để quét mã xuất kho')" class="btn-active p-6 rounded-[2.5rem] glass-card">
+            <span class="text-2xl block mb-1">📤</span>
+            <span class="font-extrabold text-sm text-white">XUẤT KHO</span>
+        </button>
     </section>
 
     <section class="space-y-4">
-        <div class="flex justify-between items-end px-1">
-            <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em]">Dữ liệu mới cập nhật</h2>
-            <button class="text-[10px] text-indigo-400 font-bold uppercase underline underline-offset-4">Xem tất cả</button>
-        </div>
-
+        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Dữ liệu mới nhất</h2>
         <div id="data-container" class="space-y-3">
-            <div class="text-center py-10 text-slate-600 text-xs italic">Đang tải dữ liệu từ hệ thống...</div>
+            <div class="text-center py-10 text-slate-600 text-[10px] uppercase font-bold tracking-tighter">Sẵn sàng nhận dữ liệu...</div>
         </div>
     </section>
 
     <nav class="fixed bottom-6 left-6 right-6 h-20 glass-card rounded-[2.5rem] flex items-center justify-around px-6 border border-white/10 shadow-2xl z-50">
         <button class="text-indigo-400 text-2xl p-2 btn-active">🏠</button>
-        <button onclick="alert('Tính năng Tìm kiếm đang phát triển')" class="text-slate-500 text-2xl p-2 btn-active">🔍</button>
-        
-        <button onclick="startScanner()" class="w-16 h-16 bg-indigo-600 rounded-3xl -mt-14 flex items-center justify-center shadow-2xl shadow-indigo-600/40 border-[6px] border-[#020617] btn-active group">
-            <span class="text-white text-2xl group-hover:scale-110 transition-transform">📷</span>
+        <button class="text-slate-500 text-2xl p-2 btn-active">🔍</button>
+        <button onclick="startScanner()" class="w-16 h-16 bg-indigo-600 rounded-3xl -mt-14 flex items-center justify-center shadow-2xl shadow-indigo-600/40 border-[6px] border-[#020617] btn-active">
+            <span class="text-white text-2xl">📷</span>
         </button>
-        
-        <button onclick="alert('Báo cáo sẽ sớm ra mắt')" class="text-slate-500 text-2xl p-2 btn-active">📊</button>
-        <button onclick="alert('Cài đặt hệ thống')" class="text-slate-500 text-2xl p-2 btn-active">⚙️</button>
+        <button class="text-slate-500 text-2xl p-2 btn-active">📊</button>
+        <button class="text-slate-500 text-2xl p-2 btn-active">⚙️</button>
     </nav>
 
     <script>
-        // Dữ liệu mẫu (Sau này sẽ thay bằng API Google Sheets)
-        const sampleData = [
-            { id: "3405420201", loc: "D2-03", lot: "2510000247-1", qty: "1.170", warehouse: "Kho A", color: "emerald" },
-            { id: "3406190401", loc: "N100", lot: "2510000247-1", qty: "1.446", warehouse: "Kho B", color: "orange" },
-            { id: "3406210301", loc: "N144", lot: "2510000247-1", qty: "2.781", warehouse: "Kho A", color: "emerald" }
-        ];
-
-        // Hàm hiển thị dữ liệu lên màn hình
-        function renderData(data) {
-            const container = document.getElementById('data-container');
-            container.innerHTML = ''; // Xóa trạng thái loading
-
-            data.forEach(item => {
-                const colorClass = item.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-                
-                container.innerHTML += `
-                    <div class="glass-card p-5 rounded-[2rem] flex items-center gap-4 border-white/5 hover:bg-white/5 transition-colors">
-                        <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-lg font-bold text-indigo-300">#</div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <h4 class="font-bold text-slate-100 text-sm tracking-wide">${item.id}</h4>
-                                <span class="text-[9px] ${colorClass} px-2 py-0.5 rounded-lg border font-bold uppercase">${item.warehouse}</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 mt-1 font-medium italic">Vị trí: ${item.loc} | Lô: ${item.lot}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-black text-indigo-400 text-base">${item.qty}</p>
-                            <p class="text-[8px] text-slate-600 uppercase font-black">Quantity</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // Các hàm xử lý sự kiện
-        function handleAction(action) {
-            alert('Bạn đang chọn: ' + action + '\nHệ thống đang kết nối Camera...');
-        }
+        let html5QrCode;
 
         function startScanner() {
-            alert('Đang khởi động Máy quét AI...\nVui lòng cho phép quyền Camera khi có thông báo.');
+            document.getElementById('scanner-container').style.display = 'block';
+            document.getElementById('reader').style.display = 'block';
+            
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                // Xử lý khi quét thành công
+                const container = document.getElementById('data-container');
+                const time = new Date().toLocaleTimeString('vi-VN');
+                
+                // Thêm kết quả quét vào danh sách
+                const newCard = `
+                    <div class="glass-card p-5 rounded-[2rem] flex items-center gap-4 border-indigo-500/30">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-indigo-300 text-sm">${decodedText}</h4>
+                            <p class="text-[10px] text-slate-500">Thời gian: ${time}</p>
+                        </div>
+                        <div class="text-right"><span class="text-xs font-bold text-emerald-400">ĐÃ QUÉT</span></div>
+                    </div>
+                `;
+                container.innerHTML = newCard + container.innerHTML;
+                
+                // Rung nhẹ và dừng quét
+                if (navigator.vibrate) navigator.vibrate(100);
+                stopScanner();
+            }).catch(err => console.log(err));
         }
 
-        // Chạy khi trang web tải xong
-        window.onload = () => {
-            setTimeout(() => renderData(sampleData), 1000); // Giả lập độ trễ mạng 1s
-            
-            // Đăng ký Service Worker cho PWA
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('scanner-container').style.display = 'none';
+                });
             }
-        };
+        }
     </script>
 </body>
 </html>
