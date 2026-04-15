@@ -11,21 +11,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
-        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
+        .glass-card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .gradient-text { background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .btn-active:active { transform: scale(0.95); }
+        .btn-active:active { transform: scale(0.95); transition: 0.1s; }
         #reader { width: 100%; border-radius: 20px; overflow: hidden; display: none; }
     </style>
 </head>
 <body class="p-4 pb-28">
+
+    <div id="install-banner" class="hidden fixed top-4 left-4 right-4 z-[100] glass-card p-4 rounded-3xl border-indigo-500/50 shadow-2xl bg-indigo-950/90">
+        <div class="flex items-center gap-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" class="w-10 h-10 rounded-xl">
+            <div class="flex-1">
+                <h4 class="text-xs font-bold text-white">WHM PRO AI</h4>
+                <p class="text-[9px] text-slate-400">Tải app để quét mã mượt hơn</p>
+            </div>
+            <button id="btn-install-now" class="bg-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black text-white shadow-lg active:scale-90">TẢI VỀ</button>
+            <button onclick="document.getElementById('install-banner').style.display='none'" class="text-slate-500 px-2">✕</button>
+        </div>
+    </div>
 
     <header class="flex justify-between items-center mb-8 pt-2">
         <div>
             <p class="text-[10px] font-bold text-indigo-400 tracking-[0.2em] uppercase">WHM AI System By Vinh</p>
             <h1 class="text-2xl font-extrabold">WHM <span class="gradient-text">SMART PRO</span></h1>
         </div>
-        <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-indigo-400">V</div>
+        <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-indigo-400 shadow-inner">V</div>
     </header>
 
     <div id="scanner-container" class="mb-6 hidden">
@@ -38,29 +50,29 @@
     <section class="grid grid-cols-2 gap-4 mb-8">
         <div class="glass-card p-5 rounded-[2rem]">
             <p class="text-slate-400 text-[9px] font-bold uppercase mb-1">Tồn kho</p>
-            <h3 class="text-xl font-black italic">14,250 <span class="text-[10px] text-slate-500 not-italic">Unit</span></h3>
+            <h3 class="text-xl font-black italic tracking-tight">14,250 <span class="text-[10px] text-slate-500 not-italic">Unit</span></h3>
         </div>
         <div class="glass-card p-5 rounded-[2rem]">
             <p class="text-slate-400 text-[9px] font-bold uppercase mb-1">Vật tư</p>
-            <h3 class="text-xl font-black italic">842 <span class="text-[10px] text-slate-500 not-italic">SKU</span></h3>
+            <h3 class="text-xl font-black italic tracking-tight">842 <span class="text-[10px] text-slate-500 not-italic">SKU</span></h3>
         </div>
     </section>
 
-    <section class="grid grid-cols-2 gap-4 mb-8 text-center">
-        <button onclick="alert('Mời bạn nhấn nút Camera để quét mã nhập kho')" class="btn-active p-6 rounded-[2.5rem] bg-indigo-600 shadow-xl shadow-indigo-600/20">
-            <span class="text-2xl block mb-1">📥</span>
+    <section class="grid grid-cols-2 gap-4 mb-8">
+        <button onclick="startScanner()" class="btn-active p-6 rounded-[2.5rem] bg-indigo-600 shadow-xl shadow-indigo-600/20 flex flex-col items-center">
+            <span class="text-2xl mb-1">📥</span>
             <span class="font-extrabold text-sm">NHẬP KHO</span>
         </button>
-        <button onclick="alert('Mời bạn nhấn nút Camera để quét mã xuất kho')" class="btn-active p-6 rounded-[2.5rem] glass-card">
-            <span class="text-2xl block mb-1">📤</span>
-            <span class="font-extrabold text-sm text-white">XUẤT KHO</span>
+        <button onclick="startScanner()" class="btn-active p-6 rounded-[2.5rem] glass-card flex flex-col items-center border-white/10">
+            <span class="text-2xl mb-1">📤</span>
+            <span class="font-extrabold text-sm">XUẤT KHO</span>
         </button>
     </section>
 
     <section class="space-y-4">
-        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Dữ liệu mới nhất</h2>
+        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Lịch sử quét mã</h2>
         <div id="data-container" class="space-y-3">
-            <div class="text-center py-10 text-slate-600 text-[10px] uppercase font-bold tracking-tighter">Sẵn sàng nhận dữ liệu...</div>
+            <div class="text-center py-10 text-slate-600 text-[10px] uppercase font-bold tracking-tighter italic">Chưa có dữ liệu mới...</div>
         </div>
     </section>
 
@@ -75,36 +87,43 @@
     </nav>
 
     <script>
-        let html5QrCode;
+        // 1. Logic Cài đặt App (PWA)
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-banner').style.display = 'block';
+        });
 
+        document.getElementById('btn-install-now').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') document.getElementById('install-banner').style.display = 'none';
+                deferredPrompt = null;
+            }
+        });
+
+        // 2. Logic Máy quét QR/Barcode
+        let html5QrCode;
         function startScanner() {
             document.getElementById('scanner-container').style.display = 'block';
             document.getElementById('reader').style.display = 'block';
-            
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-
-            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-                // Xử lý khi quét thành công
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
                 const container = document.getElementById('data-container');
-                const time = new Date().toLocaleTimeString('vi-VN');
-                
-                // Thêm kết quả quét vào danh sách
-                const newCard = `
-                    <div class="glass-card p-5 rounded-[2rem] flex items-center gap-4 border-indigo-500/30">
+                container.innerHTML = `
+                    <div class="glass-card p-5 rounded-[2rem] flex items-center gap-4 border-indigo-500/40 animate-pulse">
                         <div class="flex-1">
-                            <h4 class="font-bold text-indigo-300 text-sm">${decodedText}</h4>
-                            <p class="text-[10px] text-slate-500">Thời gian: ${time}</p>
+                            <h4 class="font-bold text-indigo-300 text-sm tracking-widest">${decodedText}</h4>
+                            <p class="text-[10px] text-slate-500 uppercase mt-1">Vừa mới quét • Thành công</p>
                         </div>
-                        <div class="text-right"><span class="text-xs font-bold text-emerald-400">ĐÃ QUÉT</span></div>
+                        <div class="text-emerald-400 text-xl">✓</div>
                     </div>
-                `;
-                container.innerHTML = newCard + container.innerHTML;
-                
-                // Rung nhẹ và dừng quét
+                ` + container.innerHTML;
                 if (navigator.vibrate) navigator.vibrate(100);
                 stopScanner();
-            }).catch(err => console.log(err));
+            }).catch(err => console.error(err));
         }
 
         function stopScanner() {
@@ -113,6 +132,11 @@
                     document.getElementById('scanner-container').style.display = 'none';
                 });
             }
+        }
+
+        // 3. Đăng ký Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     </script>
 </body>
