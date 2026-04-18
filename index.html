@@ -87,7 +87,7 @@
                 <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
                 <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis</p>
             </div>
-            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM Pro <span class="text-indigo-600">FG</span> V2.3</h1>
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM Pro <span class="text-indigo-600">FG</span>Analysis System</h1>
         </div>
         <div class="text-right">
             <button onclick="fetchData()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 mb-2">
@@ -120,9 +120,9 @@
         </div>
 
         <div class="glass-card kpi-card p-6 border-b-4 border-amber-500 animate-kpi" style="animation-delay: 0.4s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chưa Chuyển Kho</p>
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
             <h3 class="text-3xl font-black text-amber-600" id="kpi-notmoved">0</h3>
-            <p class="text-[10px] text-amber-500 mt-2 font-bold">(50, 62)</p>
+            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Hiện tại: 50, 62)</p>
         </div>
 
         <div class="glass-card kpi-card p-6 border-b-4 border-red-600 animate-kpi relative group cursor-help" style="animation-delay: 0.5s">
@@ -221,7 +221,6 @@
                 return;
             }
 
-            // Ánh xạ tên cột từ colA... sang tên dễ hiểu
             const columnMap = {
                 colA: "LP NO",
                 colB: "FEATURE",
@@ -234,7 +233,6 @@
                 colI: "BIN"
             };
 
-            // Chuyển đổi dữ liệu thô sang mảng có tiêu đề
             const formattedData = rawData.map(row => {
                 let newRow = {};
                 for (let key in columnMap) {
@@ -243,12 +241,10 @@
                 return newRow;
             });
 
-            // Tạo worksheet và workbook từ mảng dữ liệu
             const worksheet = XLSX.utils.json_to_sheet(formattedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryFG_Data");
 
-            // Tên file theo ngày hiện tại
             const dateStr = new Date().toISOString().slice(0,10);
             XLSX.writeFile(workbook, `Inventory_FG_${dateStr}.xlsx`);
         }
@@ -266,7 +262,8 @@
                 totalActual += actual;
                 totalIscala += iscalaNum;
 
-                if (iscalaValue === "No data") {
+                // THAY ĐỔI LOGIC: Quét cột WH LOC (colE) để tìm No Data
+                if (String(row.colE).toLowerCase().includes("no data")) {
                     noDataTags.push(row.colH || "N/A");
                 }
 
@@ -298,8 +295,8 @@
             document.getElementById('kpi-nodata').innerText = noDataTags.length;
             let nodataTooltip = document.getElementById('nodata-list-tooltip');
             nodataTooltip.innerHTML = noDataTags.length > 0 ? 
-                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID LỖI:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : 
-                "Mọi Tag ID đều khớp!";
+                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID LỖI VỊ TRÍ:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : 
+                "Mọi Vị Trí đều khớp!";
 
             document.getElementById('kpi-notmoved').innerText = countNotMoved;
 
@@ -346,6 +343,12 @@
                     let iscalaVal = row.colD;
                     let iscalaDisplay = iscalaVal === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(iscalaVal).toLocaleString();
                     
+                    // THAY ĐỔI HIỂN THỊ: Highlight đỏ cho WH LOC nếu là "No data"
+                    let whLocVal = row.colE;
+                    let whLocDisplay = String(whLocVal).toLowerCase().includes("no data") 
+                        ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white border border-rose-700 shadow-sm animate-pulse">No Data</span>` 
+                        : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${whLocVal}</span>`;
+                    
                     let detailRow = document.createElement('tr');
                     detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
                     detailRow.innerHTML = `
@@ -353,7 +356,7 @@
                         <td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td>
                         <td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td>
                         <td class="px-6 py-4 text-right">${iscalaDisplay}</td>
-                        <td class="px-6 py-4 text-center"><span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE}</span></td>
+                        <td class="px-6 py-4 text-center">${whLocDisplay}</td>
                         <td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td>
                         <td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td>
                         <td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td>
