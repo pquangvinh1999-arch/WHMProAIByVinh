@@ -26,7 +26,7 @@
 
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">WHM <span class="text-indigo-600">PRO DASHBOARD By Vinh</span></h1>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">WHM <span class="text-indigo-600">PRO DASHBOARD</span></h1>
             <p class="text-slate-500 text-sm font-medium">Hệ thống quản lý kho thành phẩm thông minh v2.0</p>
         </div>
         
@@ -49,7 +49,7 @@
             <h2 id="kpi-2" class="text-2xl font-black mt-1">0</h2>
         </div>
         <div class="glass-card p-5 border-b-4 border-rose-500">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Tag ID không khớp</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Tag ID không khớp (No Data)</p>
             <h2 id="kpi-3" class="text-2xl font-black text-rose-600 mt-1">0</h2>
             <p id="kpi-3-sub" class="text-[9px] text-slate-400 mt-1">0 Tag ID lỗi hệ thống</p>
         </div>
@@ -59,7 +59,7 @@
             <p id="kpi-4-sub" class="text-[9px] text-slate-400 mt-1">0 Tag ID chưa chuyển</p>
         </div>
         <div class="glass-card p-5 border-b-4 border-red-600">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Lỗi trùng Tag ID </p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Lỗi trùng Tag ID (Cột H)</p>
             <h2 id="kpi-5" class="text-2xl font-black text-red-600 mt-1">0</h2>
             <p id="kpi-5-sub" class="text-[9px] text-slate-400 mt-1">Phát hiện ID trùng lặp</p>
         </div>
@@ -85,7 +85,7 @@
             
             <div class="flex border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-slate-50">
                 <select id="filter-col" class="bg-transparent px-4 py-2 text-xs font-bold text-slate-600 outline-none border-r">
-                    <option value="Short Code">Mã hàng (Feature Code)</option>
+                    <option value="Short Code">Mã hàng (Short Code)</option>
                     <option value="WH Location">Vị trí (WH Location)</option>
                 </select>
                 <input type="text" id="search-input" placeholder="Tìm kiếm..." class="px-4 py-2 text-xs w-48 md:w-64 outline-none">
@@ -96,8 +96,8 @@
             <table class="w-full text-left border-collapse">
                 <thead class="sticky top-0 bg-white shadow-sm z-10">
                     <tr class="text-[11px] text-slate-400 uppercase font-bold border-b">
-                        <th class="p-4">LP No</th>
-                        <th class="p-4">Feature Code</th>
+                        <th class="p-4">Item Code</th>
+                        <th class="p-4">Short Code</th>
                         <th class="p-4 text-right">Actual</th>
                         <th class="p-4 text-right">Iscala</th>
                         <th class="p-4 text-center">Status</th>
@@ -118,7 +118,7 @@
 
         // 1. KẾT NỐI API & LẤY DỮ LIỆU THỜI GIAN THỰC
         async function fetchData() {
-            const url = document.getElementById('https://script.google.com/macros/s/AKfycbxWH0zJwmewK7qtAYoFTRfAzeZEpusM2tNM5lZz4uJBEo0fS4n4kgxPyorGw-zwkse3/exec').value;
+            const url = document.getElementById('api-url').value;
             if (!url) return alert("Vui lòng dán link Web App của anh vào!");
 
             document.getElementById('loader').style.display = 'block';
