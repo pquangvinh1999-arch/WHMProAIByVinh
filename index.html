@@ -12,7 +12,7 @@
     <style>
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f1f5f9; /* Nền xám nhạt dịu mắt */
+            background-color: #f1f5f9; 
             color: #0f172a; 
         }
         .glass-card { 
@@ -26,13 +26,11 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
         
-        /* Custom Scrollbar cho Table */
         .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Animation khi lọc dữ liệu */
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -44,17 +42,27 @@
             border-top: 2px solid #c7d2fe;
             border-bottom: 2px solid #c7d2fe;
         }
+
+        /* Loading Overlay */
+        #loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); display: flex; justify-content: center;
+            align-items: center; z-index: 9999; font-weight: bold; color: #4f46e5;
+        }
     </style>
 </head>
 <body class="p-6 pb-20 max-w-7xl mx-auto">
 
+    <div id="loading">Đang đồng bộ dữ liệu từ Google Sheet...</div>
+
     <header class="flex justify-between items-end mb-8">
         <div>
-            <p class="text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase mb-1">Thống kê tự động</p>
+            <p class="text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase mb-1">Thống kê dữ liệu tự động</p>
             <h1 class="text-3xl font-extrabold text-slate-800">Inventory Data Analysis <span class="text-indigo-600">FG</span></h1>
         </div>
-        <div class="text-right">
-            <p class="text-sm font-medium text-slate-500">Cập nhật lần cuối: <span id="last-update" class="text-slate-800 font-bold">Vừa xong</span></p>
+        <div class="text-right flex flex-col items-end gap-2">
+            <button onclick="fetchData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition shadow-lg">LÀM MỚI DỮ LIỆU</button>
+            <p class="text-sm font-medium text-slate-500">Cập nhật: <span id="last-update" class="text-slate-800 font-bold">--:--</span></p>
         </div>
     </header>
 
@@ -92,7 +100,6 @@
             <h3 class="text-sm font-bold text-slate-700 uppercase mb-4">So Sánh Actual vs iScala & Trend chênh lệch</h3>
             <div id="chart-comparison" class="w-full h-72"></div>
         </div>
-        
         <div class="glass-card p-5">
             <h3 class="text-sm font-bold text-slate-700 uppercase mb-4">Cảnh Báo Lệch Variant</h3>
             <div id="chart-pie-risk" class="w-full h-72 flex justify-center items-center"></div>
@@ -100,16 +107,15 @@
     </section>
 
     <section class="mb-4 flex flex-col md:flex-row justify-between items-end gap-4">
-        <h2 class="text-lg font-bold text-slate-800">BẢNG DỮ LIỆU TỔNG HỢP</h2>
-        
+        <h2 class="text-lg font-bold text-slate-800">BẢNG DỮ LIỆU TỔNG HỢP (KHO THÀNH PHẨM)</h2>
         <div class="flex bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <select id="filter-type" class="bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 border-r border-slate-200 outline-none focus:bg-indigo-50 transition">
                 <option value="colB">Lọc theo Mã Hàng </option>
-                <option value="colF">Lọc theo Vị Trí </option>
-                <option value="colA">Lọc theo Sub-code </option>
+                <option value="colE">Lọc theo Kho </option>
+                <option value="colH">Lọc theo Tag ID </option>
+                <option value="colI">Lọc theo Vị trí </option>
             </select>
-            <input type="text" id="filter-input" placeholder="Nhập từ khóa tìm kiếm..." 
-                   class="px-4 py-2 w-64 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition">
+            <input type="text" id="filter-input" placeholder="Nhập từ khóa tìm kiếm..." class="px-4 py-2 w-64 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition">
         </div>
     </section>
 
@@ -118,229 +124,150 @@
             <table class="w-full text-left text-sm text-slate-600 whitespace-nowrap">
                 <thead class="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm">
                     <tr>
-                        <th class="px-6 py-4 font-bold">LP No</th>
-                        <th class="px-6 py-4 font-bold">Feature</th>
-                        <th class="px-6 py-4 font-bold text-right">Actual</th>
-                        <th class="px-6 py-4 font-bold text-right">iScala</th>
-                        <th class="px-6 py-4 font-bold text-center">WH location</th>
-                        <th class="px-6 py-4 font-bold">Stock-in Date</th>
-                        <th class="px-6 py-4 font-bold">Create DATE</th>
-                        <th class="px-6 py-4 font-bold">Tag ID</th>
-                        <th class="px-6 py-4 font-bold">Bin</th>
+                        <th class="px-6 py-4 font-bold">LP No (A)</th>
+                        <th class="px-6 py-4 font-bold">Feature (B)</th>
+                        <th class="px-6 py-4 font-bold text-right">Actual (C)</th>
+                        <th class="px-6 py-4 font-bold text-right">iScala (D)</th>
+                        <th class="px-6 py-4 font-bold text-center">WH location (E)</th>
+                        <th class="px-6 py-4 font-bold">Stock-in Date (F)</th>
+                        <th class="px-6 py-4 font-bold">Create DATE (G)</th>
+                        <th class="px-6 py-4 font-bold">Tag ID (H)</th>
+                        <th class="px-6 py-4 font-bold">Bin (I)</th>
                     </tr>
                 </thead>
-                <tbody id="table-body" class="divide-y divide-slate-100">
-                    </tbody>
+                <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // === 1. DỮ LIỆU GIẢ LẬP (MOCK DATA) THEO SHEET KHO THÀNH PHẨM ===
-        // Trong thực tế, anh sẽ dùng Fetch API gọi Google Apps Script để đắp vào mảng này
-        const rawData = [
-            { colA: "8418310304", colB: "4183", colC: 20, colD: "20", colE: "00", colF: "26/03/2026", colG: "17/03/2026", colH: "199900009711", colI: "28-03-02" },
-            { colA: "8418320304", colB: "4183", colC: 10, colD: "No data", colE: "50", colF: "26/03/2026", colG: "17/03/2026", colH: "199900009731", colI: "28-03-02" },
-            { colA: "8838310000", colB: "8383", colC: 50, colD: "50", colE: "62", colF: "26/03/2026", colG: "17/03/2026", colH: "199900009730", colI: "28-03-02" },
-            { colA: "8838310000", colB: "8383", colC: 15, colD: "15", colE: "00", colF: "26/03/2026", colG: "17/03/2026", colH: "199900009712", colI: "28-03-02" },
-            { colA: "8838310000", colB: "8383", colC: 5,  colD: "No data", colE: "62", colF: "26/03/2026", colG: "17/03/2026", colH: "199900009713", colI: "28-03-02" }, // Cố tình làm trùng Tag ID
-            { colA: "9999111100", colB: "9999", colC: 100, colD: "90", colE: "00", colF: "26/03/2026", colG: "17/03/2026", colH: "199900009712", colI: "28-03-02" },
-        ];
-
-        // Biến toàn cục lưu biểu đồ để dễ update
+        // === CẤU HÌNH LIÊN KẾT GOOGLE SHEET ===
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyArthPhFjUuPBZ9xCLTv5JQ-Z013WVbH7o6Cj7aRBm9h8a4Sh0wqqZuYQ4auSb9Y-d/exec"; 
+        let rawData = [];
         let chartBar, chartPie;
 
-        // === 2. HÀM TÍNH TOÁN & CẬP NHẬT 5 KPI ===
+        async function fetchData() {
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                const response = await fetch(WEB_APP_URL);
+                const data = await response.json();
+                rawData = data;
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
+                initDashboard(rawData);
+            } catch (error) {
+                console.error("Lỗi kết nối API:", error);
+                alert("Không thể kết nối với Google Sheet. Anh kiểm tra lại link Deploy nhé!");
+            }
+            document.getElementById('loading').style.display = 'none';
+        }
+
         function updateKPIs(data) {
-            let totalActual = 0;
-            let totalIscala = 0;
-            let countNoData = 0;
-            let countNotMoved = 0;
+            let totalActual = 0, totalIscala = 0, countNoData = 0, countNotMoved = 0;
             let tagIdFreq = {};
 
             data.forEach(row => {
                 let actual = Number(row.colC) || 0;
                 let iscala = (row.colD === "No data") ? 0 : (Number(row.colD) || 0);
-                
                 totalActual += actual;
                 totalIscala += iscala;
-
                 if (row.colD === "No data") countNoData++;
-                if (row.colE.includes("50") || row.colE.includes("62")) countNotMoved++;
-
-                // Đếm tần suất Tag ID
-                tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
+                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
+                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
             });
 
-            // Tìm Tag ID trùng
             let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
 
-            // Cập nhật DOM
             document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
-            
             let diff = totalActual - totalIscala;
-            let diffSign = diff > 0 ? "+" : "";
-            document.getElementById('kpi-diff').innerText = `${diffSign}${diff.toLocaleString()}`;
+            document.getElementById('kpi-diff').innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
             document.getElementById('kpi-diff').className = `text-2xl font-black mt-1 ${diff === 0 ? 'text-emerald-500' : (diff > 0 ? 'text-blue-600' : 'text-rose-600')}`;
-
             document.getElementById('kpi-nodata').innerText = countNoData;
-            document.getElementById('kpi-nodata-text').innerText = `${countNoData} Tag ID không khớp hệ thống`;
-
             document.getElementById('kpi-notmoved').innerText = countNotMoved;
-            document.getElementById('kpi-notmoved-text').innerText = `${countNotMoved} Tag ID chưa chuyển kho`;
-
             document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
             
-            // Xử lý tooltip trùng lặp
             let tooltip = document.getElementById('duplicate-list-tooltip');
-            if (duplicateTags.length > 0) {
-                tooltip.innerHTML = `<p class="font-bold border-b border-slate-600 pb-1 mb-1">Các ID bị trùng:</p>
-                                     <ul class="list-disc pl-4">${duplicateTags.map(t => `<li>${t} (Lặp ${tagIdFreq[t]} lần)</li>`).join('')}</ul>`;
-                document.getElementById('kpi-duplicates-text').innerText = `Phát hiện ${duplicateTags.length} ID trùng lặp!`;
-                document.getElementById('kpi-duplicates-text').classList.replace('text-slate-400', 'text-red-500');
-            } else {
-                tooltip.innerHTML = `Dữ liệu cột H hoàn toàn sạch sẽ, không trùng lặp.`;
-                document.getElementById('kpi-duplicates-text').innerText = `Dữ liệu sạch, không trùng`;
-            }
+            tooltip.innerHTML = duplicateTags.length > 0 ? 
+                `<p class='font-bold border-b mb-1'>ID Trùng:</p>${duplicateTags.map(t => `<li>${t}</li>`).join('')}` : 
+                "Dữ liệu sạch!";
         }
 
-        // === 3. XỬ LÝ DỮ LIỆU NHÓM (GROUP BY COL B) ===
         function groupDataByColB(data) {
             let groups = {};
             data.forEach(row => {
-                if (!groups[row.colB]) {
-                    groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0, codesA: {} };
-                }
+                if (!groups[row.colB]) groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0, codesA: {} };
                 groups[row.colB].rows.push(row);
-                
                 let actual = Number(row.colC) || 0;
-                let iscala = (row.colD === "No data") ? 0 : (Number(row.colD) || 0);
-                
                 groups[row.colB].sumActual += actual;
-                groups[row.colB].sumIscala += iscala;
-
-                // Lưu trữ để dùng cho Pie chart (Lệch sub-code)
+                groups[row.colB].sumIscala += (row.colD === "No data" ? 0 : Number(row.colD) || 0);
                 groups[row.colB].codesA[row.colA] = (groups[row.colB].codesA[row.colA] || 0) + actual;
             });
             return groups;
         }
 
-        // === 4. RENDER BẢNG DỮ LIỆU ===
         function renderTable(dataToRender) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            
-            // Re-apply animation
-            tbody.classList.remove('fade-in');
-            void tbody.offsetWidth; // trigger reflow
-            tbody.classList.add('fade-in');
-
-            if (dataToRender.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400 italic">Không tìm thấy dữ liệu phù hợp...</td></tr>`;
-                return;
-            }
+            if (dataToRender.length === 0) return;
 
             const groupedData = groupDataByColB(dataToRender);
-
             Object.keys(groupedData).sort().forEach(groupKey => {
                 const group = groupedData[groupKey];
-                const countRows = group.rows.length;
-
-                // Thêm dòng Nhóm (Group Header)
                 let groupRow = document.createElement('tr');
                 groupRow.className = 'group-header';
                 groupRow.innerHTML = `
-                    <td class="px-6 py-3 font-bold text-indigo-800">Nhóm: ${groupKey}</td>
-                    <td class="px-6 py-3 text-xs text-indigo-600 font-semibold italic">(${countRows} Items)</td>
+                    <td class="px-6 py-3 font-bold text-indigo-800">Mã: ${groupKey}</td>
+                    <td class="px-6 py-3 text-xs italic">(${group.rows.length} Items)</td>
                     <td class="px-6 py-3 font-black text-indigo-700 text-right">${group.sumActual.toLocaleString()}</td>
                     <td class="px-6 py-3 font-black text-indigo-700 text-right">${group.sumIscala.toLocaleString()}</td>
-                    <td colspan="4"></td>
-                `;
+                    <td colspan="5"></td>`;
                 tbody.appendChild(groupRow);
 
-                // Thêm các dòng chi tiết
                 group.rows.forEach(row => {
                     let iscalaClass = row.colD === "No data" ? "text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded" : "text-slate-600";
                     let detailRow = document.createElement('tr');
-                    detailRow.className = 'hover:bg-slate-50 transition border-b border-slate-50';
+                    detailRow.className = 'hover:bg-slate-50 border-b border-slate-50';
                     detailRow.innerHTML = `
-                        <td class="px-6 py-3 text-slate-500 font-medium">${row.colA}</td>
+                        <td class="px-6 py-3 font-medium">${row.colA}</td>
                         <td class="px-6 py-3 text-slate-400 text-xs">${row.colB}</td>
                         <td class="px-6 py-3 text-right font-semibold">${Number(row.colC).toLocaleString()}</td>
                         <td class="px-6 py-3 text-right"><span class="${iscalaClass}">${row.colD}</span></td>
-                        <td class="px-6 py-3 text-center"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-slate-100 border border-slate-200">${row.colE}</span></td>
-                        <td class="px-6 py-3 font-medium text-slate-700">${row.colF}</td>
-                        <td class="px-6 py-3 text-xs text-slate-400 truncate max-w-[150px]">${row.colG}</td>
+                        <td class="px-6 py-3 text-center"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-slate-100 border">${row.colE}</span></td>
+                        <td class="px-6 py-3">${row.colF}</td>
+                        <td class="px-6 py-3 text-xs text-slate-400">${row.colG}</td>
                         <td class="px-6 py-3 text-xs font-mono text-slate-500">${row.colH}</td>
-                    `;
+                        <td class="px-6 py-3 text-xs">${row.colI || ''}</td>`;
                     tbody.appendChild(detailRow);
                 });
             });
         }
 
-        // === 5. RENDER BIỂU ĐỒ ===
         function renderCharts(groupedData) {
-            const labels = [];
-            const dataActual = [];
-            const dataIscala = [];
-            const dataTrend = [];
-
-            // Cho Pie chart
-            const pieLabels = [];
-            const pieData = [];
+            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
+            const pieLabels = [], pieData = [];
 
             Object.keys(groupedData).forEach(groupKey => {
                 const group = groupedData[groupKey];
-                labels.push(`Mã ${groupKey}`);
+                labels.push(`${groupKey}`);
                 dataActual.push(group.sumActual);
                 dataIscala.push(group.sumIscala);
-                
-                // Tính % Trend (Chênh lệch)
-                let trend = 0;
-                if (group.sumIscala > 0) {
-                    trend = ((group.sumActual - group.sumIscala) / group.sumIscala) * 100;
-                } else if (group.sumActual > 0) {
-                    trend = 100; // Nếu Iscala = 0 mà có Actual
-                }
-                dataTrend.push(trend.toFixed(2));
+                let trend = group.sumIscala > 0 ? ((group.sumActual - group.sumIscala) / group.sumIscala) * 100 : (group.sumActual > 0 ? 100 : 0);
+                dataTrend.push(trend.toFixed(1));
 
-                // Phân tích Pie Chart (Lệch sub-code)
-                let codes = Object.keys(group.codesA);
-                if (codes.length > 1) {
-                    // Nếu có nhiều hơn 1 sub-code trong nhóm, đưa vào Pie để cảnh báo
-                    codes.forEach(code => {
-                        pieLabels.push(`${groupKey} -> ${code}`);
+                if (Object.keys(group.codesA).length > 1) {
+                    Object.keys(group.codesA).forEach(code => {
+                        pieLabels.push(`${groupKey}-${code}`);
                         pieData.push(group.codesA[code]);
                     });
                 }
             });
 
-            // --- BAR + LINE CHART ---
-            var barOptions = {
-                series: [{
-                    name: 'Tồn Thực Tế (Actual)',
-                    type: 'column',
-                    data: dataActual
-                }, {
-                    name: 'Hệ Thống (iScala)',
-                    type: 'column',
-                    data: dataIscala
-                }, {
-                    name: 'Độ lệch (%)',
-                    type: 'line',
-                    data: dataTrend
-                }],
-                chart: { height: 280, type: 'line', toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans' },
+            const barOptions = {
+                series: [{ name: 'Actual', type: 'column', data: dataActual }, { name: 'iScala', type: 'column', data: dataIscala }, { name: 'Lệch %', type: 'line', data: dataTrend }],
+                chart: { height: 280, type: 'line', toolbar: { show: false }, fontFamily: 'inherit' },
                 stroke: { width: [0, 0, 3], curve: 'smooth' },
-                plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } }, // Tạo khoảng hở giữa các cột
                 colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
-                dataLabels: { enabled: false },
                 xaxis: { categories: labels },
-                yaxis: [
-                    { title: { text: 'Số lượng (Unit)' } },
-                    { show: false }, // Ẩn trục Y thứ 2 của iScala để xài chung trục 1
-                    { opposite: true, title: { text: '% Chênh lệch' } }
-                ],
+                yaxis: [{ title: { text: 'Units' } }, { show: false }, { opposite: true, title: { text: '%' } }],
                 legend: { position: 'top' }
             };
 
@@ -348,77 +275,33 @@
             chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
             chartBar.render();
 
-            // --- PIE CHART ---
-            if(pieData.length === 0) {
-                document.querySelector("#chart-pie-risk").innerHTML = "<p class='text-emerald-500 font-bold'>Tuyệt vời! Không có nhóm mã nào bị lệch Sub-code.</p>";
-            } else {
-                document.querySelector("#chart-pie-risk").innerHTML = ""; // Xóa text empty
-                var pieOptions = {
-                    series: pieData,
-                    chart: { type: 'donut', height: 280, fontFamily: 'Plus Jakarta Sans' },
-                    labels: pieLabels,
-                    colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'],
-                    plotOptions: {
-                        pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Tổng lệch', formatter: function (w) {
-                            return w.globals.seriesTotals.reduce((a, b) => { return a + b }, 0)
-                        }}}} }
-                    },
-                    dataLabels: { enabled: false },
+            if(pieData.length > 0) {
+                const pieOptions = {
+                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 280 },
+                    colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8'],
                     legend: { position: 'bottom' }
                 };
-
                 if (chartPie) chartPie.destroy();
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
                 chartPie.render();
             }
         }
 
-        // === 6. THUẬT TOÁN TÌM KIẾM ĐA DẠNG (DEBOUNCE SEARCH) ===
-        // Gợi ý thuật toán: Sử dụng "Debounce" để người dùng gõ phím xong 300ms hệ thống mới lọc, 
-        // giúp mượt mà hơn và không gây đơ trình duyệt nếu dữ liệu trên sheet lên tới hàng chục nghìn dòng.
-        
-        let debounceTimer;
-        
-        function handleFilter() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const keyword = document.getElementById('filter-input').value.trim().toLowerCase();
-                const targetColumn = document.getElementById('filter-type').value;
-
-                if (!keyword) {
-                    initDashboard(rawData); // Reset về ban đầu nếu xóa trắng
-                    return;
-                }
-
-                // Lọc linh hoạt: check include thay vì equal để tìm kiếm dễ hơn
-                const filteredData = rawData.filter(row => {
-                    if (!row[targetColumn]) return false;
-                    return row[targetColumn].toString().toLowerCase().includes(keyword);
-                });
-
-                // Chỉ render lại Bảng, (Không render lại biểu đồ và KPI để giữ bối cảnh tổng kho)
-                renderTable(filteredData);
-            }, 300); // 300ms delay
-        }
-
-        document.getElementById('filter-input').addEventListener('input', handleFilter);
-        document.getElementById('filter-type').addEventListener('change', () => {
-            document.getElementById('filter-input').value = ""; // Xóa trắng ô input khi đổi trường lọc
-            initDashboard(rawData);
-            document.getElementById('filter-input').focus();
+        document.getElementById('filter-input').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const col = document.getElementById('filter-type').value;
+            const filtered = rawData.filter(r => String(r[col]).toLowerCase().includes(keyword));
+            renderTable(filtered);
         });
 
-
-        // === 7. KHỞI TẠO DASHBOARD ===
         function initDashboard(data) {
             updateKPIs(data);
             renderTable(data);
             renderCharts(groupDataByColB(data));
         }
 
-        // Chạy lần đầu
-        initDashboard(rawData);
-
+        // Tự động load dữ liệu khi mở trang
+        fetchData();
     </script>
 </body>
 </html>
