@@ -2,142 +2,422 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WHM PRO | Smart Warehouse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHM FG PRO By Vinh | Inventory Data Analysis Report</title>
     
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
-        .glass-card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .gradient-text { background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .btn-active:active { transform: scale(0.95); transition: 0.1s; }
-        #reader { width: 100%; border-radius: 20px; overflow: hidden; display: none; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f1f5f9; /* Nền xám nhạt dịu mắt */
+            color: #0f172a; 
+        }
+        .glass-card { 
+            background: #ffffff; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .glass-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Custom Scrollbar cho Table */
+        .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animation khi lọc dữ liệu */
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .group-header {
+            background-color: #eef2ff !important;
+            border-top: 2px solid #c7d2fe;
+            border-bottom: 2px solid #c7d2fe;
+        }
     </style>
 </head>
-<body class="p-4 pb-28">
+<body class="p-6 pb-20 max-w-7xl mx-auto">
 
-    <div id="install-banner" class="hidden fixed top-4 left-4 right-4 z-[100] glass-card p-4 rounded-3xl border-indigo-500/50 shadow-2xl bg-indigo-950/90">
-        <div class="flex items-center gap-4">
-            <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" class="w-10 h-10 rounded-xl">
-            <div class="flex-1">
-                <h4 class="text-xs font-bold text-white">WHM PRO AI</h4>
-                <p class="text-[9px] text-slate-400">Tải app để quét mã mượt hơn</p>
-            </div>
-            <button id="btn-install-now" class="bg-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black text-white shadow-lg active:scale-90">TẢI VỀ</button>
-            <button onclick="document.getElementById('install-banner').style.display='none'" class="text-slate-500 px-2">✕</button>
-        </div>
-    </div>
-
-    <header class="flex justify-between items-center mb-8 pt-2">
+    <header class="flex justify-between items-end mb-8">
         <div>
-            <p class="text-[10px] font-bold text-indigo-400 tracking-[0.2em] uppercase">WHM AI System By Vinh</p>
-            <h1 class="text-2xl font-extrabold">WHM <span class="gradient-text">SMART PRO</span></h1>
+            <p class="text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase mb-1">Thống kê tự động</p>
+            <h1 class="text-3xl font-extrabold text-slate-800">DASHBOARD Warehouse <span class="text-indigo-600">THÀNH PHẨM</span></h1>
         </div>
-        <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-indigo-400 shadow-inner">V</div>
+        <div class="text-right">
+            <p class="text-sm font-medium text-slate-500">Cập nhật lần cuối: <span id="last-update" class="text-slate-800 font-bold">Vừa xong</span></p>
+        </div>
     </header>
 
-    <div id="scanner-container" class="mb-6 hidden">
-        <div class="glass-card p-2 rounded-[2rem]">
-            <div id="reader"></div>
-            <button onclick="stopScanner()" class="w-full py-3 text-red-400 font-bold text-xs uppercase tracking-widest">Đóng Camera</button>
+    <section class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div class="glass-card p-4 border-l-4 border-l-indigo-500">
+            <p class="text-xs font-bold text-slate-500 uppercase">Tổng Tồn Kho (Actual)</p>
+            <h3 class="text-2xl font-black text-indigo-700 mt-1" id="kpi-total-actual">0</h3>
+        </div>
+        <div class="glass-card p-4 border-l-4 border-l-blue-500">
+            <p class="text-xs font-bold text-slate-500 uppercase">Chênh Lệch Actual vs Iscala</p>
+            <h3 class="text-2xl font-black text-blue-700 mt-1" id="kpi-diff">0</h3>
+        </div>
+        <div class="glass-card p-4 border-l-4 border-l-rose-500">
+            <p class="text-xs font-bold text-slate-500 uppercase">Tag ID Không Khớp (No Data)</p>
+            <h3 class="text-2xl font-black text-rose-600 mt-1" id="kpi-nodata">0</h3>
+            <p class="text-[10px] text-slate-400 mt-1 italic" id="kpi-nodata-text">0 Tag ID không khớp hệ thống</p>
+        </div>
+        <div class="glass-card p-4 border-l-4 border-l-amber-500">
+            <p class="text-xs font-bold text-slate-500 uppercase">Chưa Chuyển Kho (50, 62)</p>
+            <h3 class="text-2xl font-black text-amber-600 mt-1" id="kpi-notmoved">0</h3>
+            <p class="text-[10px] text-slate-400 mt-1 italic" id="kpi-notmoved-text">0 Tag ID chưa chuyển kho</p>
+        </div>
+        <div class="glass-card p-4 border-l-4 border-l-red-600 relative group cursor-pointer">
+            <p class="text-xs font-bold text-slate-500 uppercase">Lỗi Trùng Lặp Tag ID</p>
+            <h3 class="text-2xl font-black text-red-600 mt-1" id="kpi-duplicates">0</h3>
+            <p class="text-[10px] text-slate-400 mt-1 italic" id="kpi-duplicates-text">Rẽ chuột để xem chi tiết</p>
+            <div id="duplicate-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-800 text-white text-xs p-3 rounded-lg shadow-xl z-50">
+                Không có dữ liệu trùng.
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card p-5 lg:col-span-2">
+            <h3 class="text-sm font-bold text-slate-700 uppercase mb-4">So Sánh Actual vs iScala & Trend chênh lệch</h3>
+            <div id="chart-comparison" class="w-full h-72"></div>
+        </div>
+        
+        <div class="glass-card p-5">
+            <h3 class="text-sm font-bold text-slate-700 uppercase mb-4">Cảnh Báo Lệch Variant</h3>
+            <div id="chart-pie-risk" class="w-full h-72 flex justify-center items-center"></div>
+        </div>
+    </section>
+
+    <section class="mb-4 flex flex-col md:flex-row justify-between items-end gap-4">
+        <h2 class="text-lg font-bold text-slate-800">BẢNG DỮ LIỆU TỔNG HỢP</h2>
+        
+        <div class="flex bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <select id="filter-type" class="bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 border-r border-slate-200 outline-none focus:bg-indigo-50 transition">
+                <option value="colB">Lọc theo Mã Hàng (Cột B)</option>
+                <option value="colF">Lọc theo Vị Trí (Cột F)</option>
+                <option value="colA">Lọc theo Sub-code (Cột A)</option>
+            </select>
+            <input type="text" id="filter-input" placeholder="Nhập từ khóa tìm kiếm..." 
+                   class="px-4 py-2 w-64 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition">
+        </div>
+    </section>
+
+    <div class="glass-card overflow-hidden">
+        <div class="table-container overflow-x-auto max-h-[600px]">
+            <table class="w-full text-left text-sm text-slate-600 whitespace-nowrap">
+                <thead class="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-bold">Mã A (Sub-code)</th>
+                        <th class="px-6 py-4 font-bold">Mã B (Group)</th>
+                        <th class="px-6 py-4 font-bold text-right">Actual (Cột C)</th>
+                        <th class="px-6 py-4 font-bold text-right">iScala (Cột D)</th>
+                        <th class="px-6 py-4 font-bold text-center">Status (Cột E)</th>
+                        <th class="px-6 py-4 font-bold">Vị Trí (Cột F)</th>
+                        <th class="px-6 py-4 font-bold">Mô tả (Cột G)</th>
+                        <th class="px-6 py-4 font-bold">Tag ID (Cột H)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-slate-100">
+                    </tbody>
+            </table>
         </div>
     </div>
 
-    <section class="grid grid-cols-2 gap-4 mb-8">
-        <div class="glass-card p-5 rounded-[2rem]">
-            <p class="text-slate-400 text-[9px] font-bold uppercase mb-1">Tồn kho</p>
-            <h3 class="text-xl font-black italic tracking-tight">14,250 <span class="text-[10px] text-slate-500 not-italic">Unit</span></h3>
-        </div>
-        <div class="glass-card p-5 rounded-[2rem]">
-            <p class="text-slate-400 text-[9px] font-bold uppercase mb-1">Vật tư</p>
-            <h3 class="text-xl font-black italic tracking-tight">842 <span class="text-[10px] text-slate-500 not-italic">SKU</span></h3>
-        </div>
-    </section>
-
-    <section class="grid grid-cols-2 gap-4 mb-8">
-        <button onclick="startScanner()" class="btn-active p-6 rounded-[2.5rem] bg-indigo-600 shadow-xl shadow-indigo-600/20 flex flex-col items-center">
-            <span class="text-2xl mb-1">📥</span>
-            <span class="font-extrabold text-sm">NHẬP KHO</span>
-        </button>
-        <button onclick="startScanner()" class="btn-active p-6 rounded-[2.5rem] glass-card flex flex-col items-center border-white/10">
-            <span class="text-2xl mb-1">📤</span>
-            <span class="font-extrabold text-sm">XUẤT KHO</span>
-        </button>
-    </section>
-
-    <section class="space-y-4">
-        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Lịch sử quét mã</h2>
-        <div id="data-container" class="space-y-3">
-            <div class="text-center py-10 text-slate-600 text-[10px] uppercase font-bold tracking-tighter italic">Chưa có dữ liệu mới...</div>
-        </div>
-    </section>
-
-    <nav class="fixed bottom-6 left-6 right-6 h-20 glass-card rounded-[2.5rem] flex items-center justify-around px-6 border border-white/10 shadow-2xl z-50">
-        <button class="text-indigo-400 text-2xl p-2 btn-active">🏠</button>
-        <button class="text-slate-500 text-2xl p-2 btn-active">🔍</button>
-        <button onclick="startScanner()" class="w-16 h-16 bg-indigo-600 rounded-3xl -mt-14 flex items-center justify-center shadow-2xl shadow-indigo-600/40 border-[6px] border-[#020617] btn-active">
-            <span class="text-white text-2xl">📷</span>
-        </button>
-        <button class="text-slate-500 text-2xl p-2 btn-active">📊</button>
-        <button class="text-slate-500 text-2xl p-2 btn-active">⚙️</button>
-    </nav>
-
     <script>
-        // 1. Logic Cài đặt App (PWA)
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-banner').style.display = 'block';
-        });
+        // === 1. DỮ LIỆU GIẢ LẬP (MOCK DATA) THEO SHEET KHO THÀNH PHẨM ===
+        // Trong thực tế, anh sẽ dùng Fetch API gọi Google Apps Script để đắp vào mảng này
+        const rawData = [
+            { colA: "8418310304", colB: "4183", colC: 20, colD: "20", colE: "00", colF: "24-01-01", colG: "Sản phẩm A", colH: "TAG001" },
+            { colA: "8418320304", colB: "4183", colC: 10, colD: "No data", colE: "50", colF: "24-01-02", colG: "Sản phẩm B", colH: "TAG002" },
+            { colA: "8838310000", colB: "8383", colC: 50, colD: "50", colE: "62", colF: "24-02-01", colG: "Sản phẩm C", colH: "TAG003" },
+            { colA: "8838310000", colB: "8383", colC: 15, colD: "15", colE: "00", colF: "24-02-01", colG: "Sản phẩm C", colH: "TAG004" },
+            { colA: "8838310000", colB: "8383", colC: 5,  colD: "No data", colE: "62", colF: "24-02-02", colG: "Sản phẩm C", colH: "TAG004" }, // Cố tình làm trùng Tag ID
+            { colA: "9999111100", colB: "9999", colC: 100, colD: "90", colE: "00", colF: "24-03-01", colG: "Sản phẩm D", colH: "TAG005" },
+        ];
 
-        document.getElementById('btn-install-now').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('install-banner').style.display = 'none';
-                deferredPrompt = null;
+        // Biến toàn cục lưu biểu đồ để dễ update
+        let chartBar, chartPie;
+
+        // === 2. HÀM TÍNH TOÁN & CẬP NHẬT 5 KPI ===
+        function updateKPIs(data) {
+            let totalActual = 0;
+            let totalIscala = 0;
+            let countNoData = 0;
+            let countNotMoved = 0;
+            let tagIdFreq = {};
+
+            data.forEach(row => {
+                let actual = Number(row.colC) || 0;
+                let iscala = (row.colD === "No data") ? 0 : (Number(row.colD) || 0);
+                
+                totalActual += actual;
+                totalIscala += iscala;
+
+                if (row.colD === "No data") countNoData++;
+                if (row.colE.includes("50") || row.colE.includes("62")) countNotMoved++;
+
+                // Đếm tần suất Tag ID
+                tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
+            });
+
+            // Tìm Tag ID trùng
+            let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
+
+            // Cập nhật DOM
+            document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
+            
+            let diff = totalActual - totalIscala;
+            let diffSign = diff > 0 ? "+" : "";
+            document.getElementById('kpi-diff').innerText = `${diffSign}${diff.toLocaleString()}`;
+            document.getElementById('kpi-diff').className = `text-2xl font-black mt-1 ${diff === 0 ? 'text-emerald-500' : (diff > 0 ? 'text-blue-600' : 'text-rose-600')}`;
+
+            document.getElementById('kpi-nodata').innerText = countNoData;
+            document.getElementById('kpi-nodata-text').innerText = `${countNoData} Tag ID không khớp hệ thống`;
+
+            document.getElementById('kpi-notmoved').innerText = countNotMoved;
+            document.getElementById('kpi-notmoved-text').innerText = `${countNotMoved} Tag ID chưa chuyển kho`;
+
+            document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
+            
+            // Xử lý tooltip trùng lặp
+            let tooltip = document.getElementById('duplicate-list-tooltip');
+            if (duplicateTags.length > 0) {
+                tooltip.innerHTML = `<p class="font-bold border-b border-slate-600 pb-1 mb-1">Các ID bị trùng:</p>
+                                     <ul class="list-disc pl-4">${duplicateTags.map(t => `<li>${t} (Lặp ${tagIdFreq[t]} lần)</li>`).join('')}</ul>`;
+                document.getElementById('kpi-duplicates-text').innerText = `Phát hiện ${duplicateTags.length} ID trùng lặp!`;
+                document.getElementById('kpi-duplicates-text').classList.replace('text-slate-400', 'text-red-500');
+            } else {
+                tooltip.innerHTML = `Dữ liệu cột H hoàn toàn sạch sẽ, không trùng lặp.`;
+                document.getElementById('kpi-duplicates-text').innerText = `Dữ liệu sạch, không trùng`;
             }
-        });
-
-        // 2. Logic Máy quét QR/Barcode
-        let html5QrCode;
-        function startScanner() {
-            document.getElementById('scanner-container').style.display = 'block';
-            document.getElementById('reader').style.display = 'block';
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
-                const container = document.getElementById('data-container');
-                container.innerHTML = `
-                    <div class="glass-card p-5 rounded-[2rem] flex items-center gap-4 border-indigo-500/40 animate-pulse">
-                        <div class="flex-1">
-                            <h4 class="font-bold text-indigo-300 text-sm tracking-widest">${decodedText}</h4>
-                            <p class="text-[10px] text-slate-500 uppercase mt-1">Vừa mới quét • Thành công</p>
-                        </div>
-                        <div class="text-emerald-400 text-xl">✓</div>
-                    </div>
-                ` + container.innerHTML;
-                if (navigator.vibrate) navigator.vibrate(100);
-                stopScanner();
-            }).catch(err => console.error(err));
         }
 
-        function stopScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('scanner-container').style.display = 'none';
+        // === 3. XỬ LÝ DỮ LIỆU NHÓM (GROUP BY COL B) ===
+        function groupDataByColB(data) {
+            let groups = {};
+            data.forEach(row => {
+                if (!groups[row.colB]) {
+                    groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0, codesA: {} };
+                }
+                groups[row.colB].rows.push(row);
+                
+                let actual = Number(row.colC) || 0;
+                let iscala = (row.colD === "No data") ? 0 : (Number(row.colD) || 0);
+                
+                groups[row.colB].sumActual += actual;
+                groups[row.colB].sumIscala += iscala;
+
+                // Lưu trữ để dùng cho Pie chart (Lệch sub-code)
+                groups[row.colB].codesA[row.colA] = (groups[row.colB].codesA[row.colA] || 0) + actual;
+            });
+            return groups;
+        }
+
+        // === 4. RENDER BẢNG DỮ LIỆU ===
+        function renderTable(dataToRender) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            // Re-apply animation
+            tbody.classList.remove('fade-in');
+            void tbody.offsetWidth; // trigger reflow
+            tbody.classList.add('fade-in');
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400 italic">Không tìm thấy dữ liệu phù hợp...</td></tr>`;
+                return;
+            }
+
+            const groupedData = groupDataByColB(dataToRender);
+
+            Object.keys(groupedData).sort().forEach(groupKey => {
+                const group = groupedData[groupKey];
+                const countRows = group.rows.length;
+
+                // Thêm dòng Nhóm (Group Header)
+                let groupRow = document.createElement('tr');
+                groupRow.className = 'group-header';
+                groupRow.innerHTML = `
+                    <td class="px-6 py-3 font-bold text-indigo-800">Nhóm: ${groupKey}</td>
+                    <td class="px-6 py-3 text-xs text-indigo-600 font-semibold italic">(${countRows} Items)</td>
+                    <td class="px-6 py-3 font-black text-indigo-700 text-right">${group.sumActual.toLocaleString()}</td>
+                    <td class="px-6 py-3 font-black text-indigo-700 text-right">${group.sumIscala.toLocaleString()}</td>
+                    <td colspan="4"></td>
+                `;
+                tbody.appendChild(groupRow);
+
+                // Thêm các dòng chi tiết
+                group.rows.forEach(row => {
+                    let iscalaClass = row.colD === "No data" ? "text-rose-500 font-bold bg-rose-50 px-2 py-1 rounded" : "text-slate-600";
+                    let detailRow = document.createElement('tr');
+                    detailRow.className = 'hover:bg-slate-50 transition border-b border-slate-50';
+                    detailRow.innerHTML = `
+                        <td class="px-6 py-3 text-slate-500 font-medium">${row.colA}</td>
+                        <td class="px-6 py-3 text-slate-400 text-xs">${row.colB}</td>
+                        <td class="px-6 py-3 text-right font-semibold">${Number(row.colC).toLocaleString()}</td>
+                        <td class="px-6 py-3 text-right"><span class="${iscalaClass}">${row.colD}</span></td>
+                        <td class="px-6 py-3 text-center"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-slate-100 border border-slate-200">${row.colE}</span></td>
+                        <td class="px-6 py-3 font-medium text-slate-700">${row.colF}</td>
+                        <td class="px-6 py-3 text-xs text-slate-400 truncate max-w-[150px]">${row.colG}</td>
+                        <td class="px-6 py-3 text-xs font-mono text-slate-500">${row.colH}</td>
+                    `;
+                    tbody.appendChild(detailRow);
                 });
+            });
+        }
+
+        // === 5. RENDER BIỂU ĐỒ ===
+        function renderCharts(groupedData) {
+            const labels = [];
+            const dataActual = [];
+            const dataIscala = [];
+            const dataTrend = [];
+
+            // Cho Pie chart
+            const pieLabels = [];
+            const pieData = [];
+
+            Object.keys(groupedData).forEach(groupKey => {
+                const group = groupedData[groupKey];
+                labels.push(`Mã ${groupKey}`);
+                dataActual.push(group.sumActual);
+                dataIscala.push(group.sumIscala);
+                
+                // Tính % Trend (Chênh lệch)
+                let trend = 0;
+                if (group.sumIscala > 0) {
+                    trend = ((group.sumActual - group.sumIscala) / group.sumIscala) * 100;
+                } else if (group.sumActual > 0) {
+                    trend = 100; // Nếu Iscala = 0 mà có Actual
+                }
+                dataTrend.push(trend.toFixed(2));
+
+                // Phân tích Pie Chart (Lệch sub-code)
+                let codes = Object.keys(group.codesA);
+                if (codes.length > 1) {
+                    // Nếu có nhiều hơn 1 sub-code trong nhóm, đưa vào Pie để cảnh báo
+                    codes.forEach(code => {
+                        pieLabels.push(`${groupKey} -> ${code}`);
+                        pieData.push(group.codesA[code]);
+                    });
+                }
+            });
+
+            // --- BAR + LINE CHART ---
+            var barOptions = {
+                series: [{
+                    name: 'Tồn Thực Tế (Actual)',
+                    type: 'column',
+                    data: dataActual
+                }, {
+                    name: 'Hệ Thống (iScala)',
+                    type: 'column',
+                    data: dataIscala
+                }, {
+                    name: 'Độ lệch (%)',
+                    type: 'line',
+                    data: dataTrend
+                }],
+                chart: { height: 280, type: 'line', toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans' },
+                stroke: { width: [0, 0, 3], curve: 'smooth' },
+                plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } }, // Tạo khoảng hở giữa các cột
+                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
+                dataLabels: { enabled: false },
+                xaxis: { categories: labels },
+                yaxis: [
+                    { title: { text: 'Số lượng (Unit)' } },
+                    { show: false }, // Ẩn trục Y thứ 2 của iScala để xài chung trục 1
+                    { opposite: true, title: { text: '% Chênh lệch' } }
+                ],
+                legend: { position: 'top' }
+            };
+
+            if (chartBar) chartBar.destroy();
+            chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
+            chartBar.render();
+
+            // --- PIE CHART ---
+            if(pieData.length === 0) {
+                document.querySelector("#chart-pie-risk").innerHTML = "<p class='text-emerald-500 font-bold'>Tuyệt vời! Không có nhóm mã nào bị lệch Sub-code.</p>";
+            } else {
+                document.querySelector("#chart-pie-risk").innerHTML = ""; // Xóa text empty
+                var pieOptions = {
+                    series: pieData,
+                    chart: { type: 'donut', height: 280, fontFamily: 'Plus Jakarta Sans' },
+                    labels: pieLabels,
+                    colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'],
+                    plotOptions: {
+                        pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Tổng lệch', formatter: function (w) {
+                            return w.globals.seriesTotals.reduce((a, b) => { return a + b }, 0)
+                        }}}} }
+                    },
+                    dataLabels: { enabled: false },
+                    legend: { position: 'bottom' }
+                };
+
+                if (chartPie) chartPie.destroy();
+                chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
+                chartPie.render();
             }
         }
 
-        // 3. Đăng ký Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
+        // === 6. THUẬT TOÁN TÌM KIẾM ĐA DẠNG (DEBOUNCE SEARCH) ===
+        // Gợi ý thuật toán: Sử dụng "Debounce" để người dùng gõ phím xong 300ms hệ thống mới lọc, 
+        // giúp mượt mà hơn và không gây đơ trình duyệt nếu dữ liệu trên sheet lên tới hàng chục nghìn dòng.
+        
+        let debounceTimer;
+        
+        function handleFilter() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const keyword = document.getElementById('filter-input').value.trim().toLowerCase();
+                const targetColumn = document.getElementById('filter-type').value;
+
+                if (!keyword) {
+                    initDashboard(rawData); // Reset về ban đầu nếu xóa trắng
+                    return;
+                }
+
+                // Lọc linh hoạt: check include thay vì equal để tìm kiếm dễ hơn
+                const filteredData = rawData.filter(row => {
+                    if (!row[targetColumn]) return false;
+                    return row[targetColumn].toString().toLowerCase().includes(keyword);
+                });
+
+                // Chỉ render lại Bảng, (Không render lại biểu đồ và KPI để giữ bối cảnh tổng kho)
+                renderTable(filteredData);
+            }, 300); // 300ms delay
         }
+
+        document.getElementById('filter-input').addEventListener('input', handleFilter);
+        document.getElementById('filter-type').addEventListener('change', () => {
+            document.getElementById('filter-input').value = ""; // Xóa trắng ô input khi đổi trường lọc
+            initDashboard(rawData);
+            document.getElementById('filter-input').focus();
+        });
+
+
+        // === 7. KHỞI TẠO DASHBOARD ===
+        function initDashboard(data) {
+            updateKPIs(data);
+            renderTable(data);
+            renderCharts(groupDataByColB(data));
+        }
+
+        // Chạy lần đầu
+        initDashboard(rawData);
+
     </script>
 </body>
 </html>
