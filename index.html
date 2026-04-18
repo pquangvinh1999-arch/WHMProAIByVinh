@@ -295,7 +295,7 @@
             document.getElementById('kpi-nodata').innerText = noDataTags.length;
             let nodataTooltip = document.getElementById('nodata-list-tooltip');
             nodataTooltip.innerHTML = noDataTags.length > 0 ? 
-                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID LỖI VỊ TRÍ:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : 
+                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID KHÔNG CÓ TRÊN ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : 
                 "Mọi Vị Trí đều khớp!";
 
             document.getElementById('kpi-notmoved').innerText = countNotMoved;
