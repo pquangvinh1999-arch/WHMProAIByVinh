@@ -1,226 +1,733 @@
 <!DOCTYPE html>
+
 <html lang="vi">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>WHMFG AI | By Vinh</title>
+
+    
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .glass-card { background: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
-        #loading { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        
-        /* Sidebar Chat */
-        #chat-sidebar { position: fixed; right: -400px; top: 0; width: 380px; height: 100%; background: white; box-shadow: -10px 0 30px rgba(0,0,0,0.1); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; }
-        #chat-sidebar.active { right: 0; }
-        .chat-bubble { padding: 12px 16px; border-radius: 15px; margin-bottom: 10px; font-size: 13px; line-height: 1.5; max-width: 85%; }
-        .user-msg { background: #4f46e5; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai-msg { background: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
-        
-        /* Modal */
-        #login-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+
+        :root { --primary: #4f46e5; --success: #10b981; --danger: #f43f5e; --warning: #f59e0b; }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
+
+        * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+
+        .glass-card { background: #ffffff; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .kpi-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .animate-kpi { animation: slideUp 0.5s ease-out forwards; }
+
+        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
+
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .group-header { background-color: #f1f5f9 !important; border-left: 4px solid var(--primary); }
+
+        .apexcharts-toolbar { top: -20px !important; right: 0 !important; }
+
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     </style>
+
 </head>
-<body class="p-6 max-w-[1600px] mx-auto">
 
-    <div id="login-modal">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-96 text-center">
-            <h2 class="text-2xl font-black mb-4">Chào mừng Quản lý!</h2>
-            <p class="text-slate-500 text-sm mb-6">Vui lòng nhập tên để Llama hỗ trợ bạn.</p>
-            <input type="text" id="user-name-input" placeholder="Tên của bạn..." class="w-full px-4 py-3 border rounded-xl mb-4 outline-none focus:ring-2 ring-indigo-500">
-            <button onclick="startSystem()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">BẮT ĐẦU LÀM VIỆC</button>
-        </div>
+<body class="p-6 pb-20 max-w-[1600px] mx-auto">
+
+
+
+    <div id="loading">
+
+        <div class="spinner"></div>
+
+        <p class="font-bold text-indigo-600 animate-pulse">HỆ THỐNG ĐANG ĐỒNG BỘ DỮ LIỆU...</p>
+
     </div>
 
-    <div id="loading" style="display:none;">
-        <div class="w-12 h-12 border-4 border-indigo-200 border-top-indigo-600 rounded-full animate-spin mb-4"></div>
-        <p class="font-bold text-indigo-600">ĐANG ĐỒNG BỘ DỮ LIỆU KHO...</p>
-    </div>
 
-    <header class="flex justify-between items-center mb-10">
+
+    <header class="flex justify-between items-end mb-10">
+
         <div>
-            <h1 class="text-3xl font-black text-slate-900">WHM System <span class="text-indigo-600">AI</span> finished Goods</h1>
-            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">inventory Analysis System By Vinh</p>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-xs font-bold text-slate-400">QUẢN TRỊ VIÊN</p>
-                <p id="display-user-name" class="font-black text-indigo-600">---</p>
+
+            <div class="flex items-center gap-2 mb-1">
+
+                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
+
+                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis</p>
+
             </div>
-            <button onclick="toggleChat()" class="bg-purple-600 text-white p-3 rounded-full shadow-lg hover:scale-110 transition-all relative">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-            </button>
+
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">AI</span> Finished Goods</h1>
+
         </div>
+
+        <div class="text-right">
+
+            <button onclick="fetchData()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 mb-2">
+
+                LÀM MỚI DỮ LIỆU
+
+            </button>
+
+            <p class="text-sm font-medium text-slate-400">Cập nhật lần cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
+
+        </div>
+
     </header>
 
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="glass-card p-6">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Tổng Tồn Kho</p>
-            <h3 id="kpi-total-actual" class="text-2xl font-black">0</h3>
+
+
+    <!-- KPI SECTION -->
+
+    <section class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
+
+        <div class="glass-card kpi-card p-6 border-b-4 border-indigo-500 animate-kpi" style="animation-delay: 0.1s">
+
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Kho</p>
+
+            <h3 class="text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
+
+            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">Thực tế tại kho (PCS)</p>
+
         </div>
-        <div class="glass-card p-6 border-b-4 border-indigo-500">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Lệch Hệ Thống</p>
-            <h3 id="kpi-diff" class="text-2xl font-black">0</h3>
+
+        <div class="glass-card kpi-card p-6 border-b-4 border-blue-500 animate-kpi" style="animation-delay: 0.2s">
+
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
+
+            <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
+
+            <div id="kpi-diff-percent" class="text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block">0%</div>
+
         </div>
-        <div class="glass-card p-6">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Tag ID Lỗi</p>
-            <h3 id="kpi-nodata" class="text-2xl font-black text-rose-500">0</h3>
+
+        <div class="glass-card kpi-card p-6 border-b-4 border-rose-500 animate-kpi relative group cursor-help" style="animation-delay: 0.3s">
+
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag ID Không Khớp</p>
+
+            <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
+
+            <p class="text-[10px] text-rose-400 mt-2 italic font-medium">Rê chuột xem danh sách</p>
+
+            <div id="nodata-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-900 text-white text-[11px] p-4 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto"></div>
+
         </div>
-        <div class="glass-card p-6">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Trùng Tag ID</p>
-            <h3 id="kpi-duplicates" class="text-2xl font-black text-red-600">0</h3>
+
+        <div class="glass-card kpi-card p-6 border-b-4 border-amber-500 animate-kpi" style="animation-delay: 0.4s">
+
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
+
+            <h3 class="text-3xl font-black text-amber-600" id="kpi-notmoved">0</h3>
+
+            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Hiện tại: 50, 62)</p>
+
         </div>
+
+        <div class="glass-card kpi-card p-6 border-b-4 border-red-600 animate-kpi relative group cursor-help" style="animation-delay: 0.5s">
+
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Lỗi Trùng Tag ID</p>
+
+            <h3 class="text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
+
+            <p class="text-[10px] text-red-400 mt-2 italic font-medium">Rê chuột xem danh sách</p>
+
+            <div id="duplicate-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-900 text-white text-[11px] p-4 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto"></div>
+
+        </div>
+
     </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="glass-card p-6"><div id="chart-comparison"></div></div>
-        <div class="glass-card p-6"><div id="chart-pie-risk"></div></div>
+
+
+    <!-- AI ANALYSIS SECTION -->
+
+    <section class="glass-card p-6 mb-10 border-l-4 border-purple-600">
+
+        <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
+
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+
+            </svg>
+
+            Trợ Lý Llama AI Phân Tích Kho Thông Minh
+
+        </h3>
+
+        <div class="flex gap-3">
+
+            <input type="text" id="ai-input" placeholder="Ví dụ: Tại sao mã 4183 lệch nhiều nhất? Những Tag ID nào đang bị No Data?" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
+
+            <button onclick="chatWithAI()" id="ai-btn" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95 flex items-center gap-2">
+
+                <span>Hỏi Llama</span>
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+
+                </svg>
+
+            </button>
+
+        </div>
+
+        <div id="ai-response" class="mt-4 p-4 bg-purple-50 rounded-xl text-sm text-slate-700 hidden border border-purple-100 leading-relaxed">
+
+            <!-- AI Answer will appear here -->
+
+        </div>
+
+    </section>
+
+
+
+    <!-- CHARTS SECTION -->
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+
+        <div class="glass-card p-6 lg:col-span-2">
+
+            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
+
+                <span class="w-1 h-4 bg-indigo-500 rounded-full"></span>
+
+                So Sánh Actual vs iScala & % Chênh Lệch
+
+            </h3>
+
+            <div id="chart-comparison" class="w-full h-80"></div>
+
+        </div>
+
+        <div class="glass-card p-6">
+
+            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
+
+                <span class="w-1 h-4 bg-rose-500 rounded-full"></span>
+
+                Phân Tích Rủi Ro (Chênh Lệch)
+
+            </h3>
+
+            <div id="chart-pie-risk" class="w-full h-80 flex flex-col justify-center items-center">
+
+                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.<br>Mọi thứ đang khớp!</p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- TABLE SECTION -->
+
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+
+        <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">CHI TIẾT DỮ LIỆU KHO</h2>
+
+        <div class="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-1 gap-1">
+
+            <select id="filter-type" class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 border-none outline-none rounded-xl focus:ring-0">
+
+                <option value="colB">FEATURE</option>
+
+                <option value="colE">KHO (WH)</option>
+
+                <option value="colH">TAG ID</option>
+
+                <option value="colI">VỊ TRÍ (BIN)</option>
+
+            </select>
+
+            <input type="text" id="filter-input" placeholder="Tìm kiếm nhanh..." class="px-4 py-2 w-64 text-sm outline-none font-medium">
+
+            <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-2 active:scale-95">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+
+                </svg>
+
+                XUẤT EXCEL
+
+            </button>
+
+        </div>
+
     </div>
+
+
 
     <div class="glass-card overflow-hidden">
-        <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-            <h2 class="font-bold">CHI TIẾT KHO THÀNH PHẨM</h2>
-            <input type="text" id="filter-input" placeholder="Tìm kiếm nhanh..." class="px-4 py-2 border rounded-lg text-sm outline-none">
-        </div>
-        <div class="max-h-[500px] overflow-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-slate-100 sticky top-0 font-bold text-[11px] text-slate-500 uppercase">
-                    <tr><th class="p-4">LP NO</th><th class="p-4">FEATURE</th><th class="p-4 text-right">ACTUAL</th><th class="p-4 text-right">ISCALA</th><th class="p-4 text-center">WH LOC</th><th class="p-4">TAG ID</th></tr>
+
+        <div class="table-container overflow-x-auto max-h-[650px]">
+
+            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
+
+                <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
+
+                    <tr>
+
+                        <th class="px-8 py-5">LP NO</th>
+
+                        <th class="px-6 py-5">FEATURE</th>
+
+                        <th class="px-6 py-5 text-right">ACTUAL</th>
+
+                        <th class="px-6 py-5 text-right">ISCALA</th>
+
+                        <th class="px-6 py-5 text-center">WH LOC</th>
+
+                        <th class="px-6 py-5">STOCK IN DATE</th>
+
+                        <th class="px-6 py-5">CREATE DATE</th>
+
+                        <th class="px-6 py-5">TAG ID</th>
+
+                        <th class="px-6 py-5">BIN</th>
+
+                    </tr>
+
                 </thead>
-                <tbody id="table-body" class="divide-y"></tbody>
+
+                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+
             </table>
+
         </div>
+
     </div>
 
-    <div id="chat-sidebar">
-        <div class="p-6 bg-indigo-600 text-white flex justify-between items-center">
-            <div>
-                <h3 class="font-black text-lg">Llama Warehouse Assistant</h3>
-                <p class="text-[10px] opacity-80">Đang hoạt động</p>
-            </div>
-            <button onclick="toggleChat()" class="hover:rotate-90 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-        </div>
-        <div id="chat-content" class="flex-1 p-4 overflow-y-auto flex flex-col bg-slate-50">
-            <div class="ai-msg chat-bubble">Chào bạn! Hãy nhập tên để tôi có thể hỗ trợ bạn tốt nhất nhé.</div>
-        </div>
-        <div class="p-4 border-t bg-white">
-            <div class="flex gap-2">
-                <input type="text" id="ai-input" placeholder="Nhập câu hỏi tại đây..." class="flex-1 border rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 ring-indigo-500">
-                <button onclick="chatWithAI()" class="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9-2-9-18-9 18 9 2zm0 0v-8" /></svg>
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyCLmWAW-rkzUlKAoN08KSdg-YjegiLgU4iJ5MWNf-VxINYwxcclviXPjHRzYO-srre/exec"; 
+
+        // THAY LINK WEB APP CỦA ANH VÀO ĐÂY
+
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyzRI4HSjaj6FXwXbftbBRxbREKKUrCnArLvVH0fsAHDEYqu2hSdpQ2TmoMh3-Mh4MQ/exec"; 
+
         let rawData = [];
-        let userName = "";
 
-        // Khởi động hệ thống
-        function startSystem() {
-            const nameInput = document.getElementById('user-name-input');
-            if(!nameInput.value) return alert("Vui lòng cho biết tên của bạn!");
-            userName = nameInput.value;
-            document.getElementById('display-user-name').innerText = userName.toUpperCase();
-            document.getElementById('login-modal').style.display = 'none';
-            fetchData();
-        }
+        let chartBar, chartPie;
 
-        // Enter để gửi chat
-        document.getElementById('ai-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') chatWithAI();
-        });
 
-        function toggleChat() {
-            document.getElementById('chat-sidebar').classList.toggle('active');
-        }
 
         async function fetchData() {
+
             document.getElementById('loading').style.display = 'flex';
+
             try {
+
                 const response = await fetch(WEB_APP_URL);
-                rawData = await response.json();
-                renderTable(rawData);
-                updateKPIs(rawData);
-                renderCharts(rawData);
-                addMessage(`Hệ thống đã đồng bộ thành công. Chào ${userName}, Bạn cần tôi hỗ trợ gì cứ nói!`, 'ai');
+
+                const data = await response.json();
+
+                rawData = data;
+
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+
+                initDashboard(rawData);
+
             } catch (error) {
-                alert("Lỗi kết nối dữ liệu.");
+
+                alert("Lỗi kết nối API. Vui lòng kiểm tra link Deploy.");
+
             }
+
             document.getElementById('loading').style.display = 'none';
+
         }
 
-        function addMessage(text, sender) {
-            const chatContent = document.getElementById('chat-content');
-            const div = document.createElement('div');
-            div.className = `chat-bubble ${sender === 'user' ? 'user-msg' : 'ai-msg'}`;
-            div.innerHTML = text.replace(/\n/g, '<br>');
-            chatContent.appendChild(div);
-            chatContent.scrollTop = chatContent.scrollHeight;
-        }
+
 
         async function chatWithAI() {
-            const input = document.getElementById('ai-input');
-            const query = input.value.trim();
-            if(!query) return;
 
-            addMessage(query, 'user');
-            input.value = "";
+            const input = document.getElementById('ai-input');
+
+            const responseDiv = document.getElementById('ai-response');
+
+            const btn = document.getElementById('ai-btn');
+
             
-            // Hiệu ứng chờ
-            const loadingId = "loading-" + Date.now();
-            const chatContent = document.getElementById('chat-content');
-            const loadDiv = document.createElement('div');
-            loadDiv.id = loadingId;
-            loadDiv.className = "ai-msg chat-bubble italic opacity-50";
-            loadDiv.innerText = "Đang suy nghĩ...";
-            chatContent.appendChild(loadDiv);
+
+            if(!input.value) return;
+
+
+
+            responseDiv.innerHTML = `<div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div> AI đang phân tích dữ liệu kho...</div>`;
+
+            responseDiv.classList.remove('hidden');
+
+            btn.disabled = true;
+
+
 
             try {
+
                 const response = await fetch(WEB_APP_URL, {
+
                     method: 'POST',
-                    body: JSON.stringify({ query, data: rawData, userName })
+
+                    body: JSON.stringify({
+
+                        query: input.value,
+
+                        data: rawData
+
+                    })
+
                 });
+
                 const result = await response.json();
-                document.getElementById(loadingId).remove();
-                addMessage(result.answer, 'ai');
+
+                
+
+                // Format câu trả lời AI cho đẹp (thay thế \n bằng <br>)
+
+                responseDiv.innerHTML = `<strong>AI Trợ Lý:</strong><br>${result.answer.replace(/\n/g, '<br>')}`;
+
             } catch (e) {
-                document.getElementById(loadingId).innerText = "Lỗi kết nối AI.";
+
+                responseDiv.innerText = "Có lỗi xảy ra khi kết nối với AI. Vui lòng thử lại!";
+
+            } finally {
+
+                btn.disabled = false;
+
             }
+
         }
 
-        // Các hàm xử lý dữ liệu khác (renderTable, updateKPIs, renderCharts) anh giữ nguyên logic cũ nhưng cập nhật ID cho đúng.
-        function renderTable(data) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = data.map(r => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-4 font-bold text-slate-500">${r.colA}</td>
-                    <td class="p-4">${r.colB}</td>
-                    <td class="p-4 text-right font-black">${r.colC.toLocaleString()}</td>
-                    <td class="p-4 text-right">${r.colD}</td>
-                    <td class="p-4 text-center">${r.colE}</td>
-                    <td class="p-4 font-mono text-indigo-400">${r.colH}</td>
-                </tr>
-            `).join('');
+
+
+        function exportToExcel() {
+
+            if (rawData.length === 0) { alert("Không có dữ liệu!"); return; }
+
+            const columnMap = { colA: "LP NO", colB: "FEATURE", colC: "ACTUAL", colD: "ISCALA", colE: "WH LOCATION", colF: "STOCK IN DATE", colG: "CREATE DATE", colH: "TAG ID", colI: "BIN" };
+
+            const formattedData = rawData.map(row => {
+
+                let newRow = {};
+
+                for (let key in columnMap) { newRow[columnMap[key]] = row[key] || ""; }
+
+                return newRow;
+
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+            const workbook = XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryFG_Data");
+
+            XLSX.writeFile(workbook, `Inventory_FG_${new Date().toISOString().slice(0,10)}.xlsx`);
+
         }
+
+
 
         function updateKPIs(data) {
-            let total = data.reduce((sum, r) => sum + (Number(r.colC) || 0), 0);
-            document.getElementById('kpi-total-actual').innerText = total.toLocaleString();
-            // Thêm các logic KPI khác tương tự bản cũ...
+
+            let totalActual = 0, totalIscala = 0, countNotMoved = 0;
+
+            let tagIdFreq = {};
+
+            let noDataTags = [];
+
+
+
+            data.forEach(row => {
+
+                let actual = Number(row.colC) || 0;
+
+                let iscalaValue = row.colD;
+
+                let iscalaNum = (iscalaValue === "No data") ? 0 : (Number(iscalaValue) || 0);
+
+                totalActual += actual;
+
+                totalIscala += iscalaNum;
+
+                if (String(row.colE).toLowerCase().includes("no data")) { noDataTags.push(row.colH || "N/A"); }
+
+                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
+
+                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
+
+            });
+
+
+
+            document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
+
+            let diff = totalActual - totalIscala;
+
+            let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
+
+            const diffEl = document.getElementById('kpi-diff');
+
+            const diffPercentEl = document.getElementById('kpi-diff-percent');
+
+            diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
+
+            diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
+
+
+
+            if (diff === 0) {
+
+                diffEl.className = "text-3xl font-black text-emerald-500";
+
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600";
+
+            } else if (Math.abs(diffPercent) < 5) {
+
+                diffEl.className = "text-3xl font-black text-amber-500";
+
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-amber-50 text-amber-600";
+
+            } else {
+
+                diffEl.className = "text-3xl font-black text-rose-600";
+
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-50 text-rose-600";
+
+            }
+
+
+
+            document.getElementById('kpi-nodata').innerText = noDataTags.length;
+
+            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 ? 
+
+                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID LỖI VỊ TRÍ:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : "Mọi Vị Trí đều khớp!";
+
+
+
+            document.getElementById('kpi-notmoved').innerText = countNotMoved;
+
+            let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
+
+            document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
+
+            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 ? 
+
+                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` : "Dữ liệu sạch!";
+
         }
 
-        function renderCharts(data) {
-            // ApexCharts logic...
+
+
+        function groupDataByColB(data) {
+
+            let groups = {};
+
+            data.forEach(row => {
+
+                if (!groups[row.colB]) groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0 };
+
+                groups[row.colB].rows.push(row);
+
+                groups[row.colB].sumActual += (Number(row.colC) || 0);
+
+                groups[row.colB].sumIscala += (row.colD === "No data" ? 0 : Number(row.colD) || 0);
+
+            });
+
+            return groups;
+
         }
+
+
+
+        function renderTable(dataToRender) {
+
+            const tbody = document.getElementById('table-body');
+
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) return;
+
+            const groupedData = groupDataByColB(dataToRender);
+
+            Object.keys(groupedData).sort().forEach(groupKey => {
+
+                const group = groupedData[groupKey];
+
+                const kienCount = Math.ceil(group.rows.length / 2);
+
+                let groupRow = document.createElement('tr');
+
+                groupRow.className = 'group-header';
+
+                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td><td colspan="5"></td>`;
+
+                tbody.appendChild(groupRow);
+
+                group.rows.forEach(row => {
+
+                    let iscalaVal = row.colD;
+
+                    let iscalaDisplay = iscalaVal === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(iscalaVal).toLocaleString();
+
+                    let whLocVal = row.colE;
+
+                    let whLocDisplay = String(whLocVal).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white border border-rose-700 shadow-sm animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${whLocVal}</span>`;
+
+                    let detailRow = document.createElement('tr');
+
+                    detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
+
+                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td><td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${iscalaDisplay}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td><td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td><td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
+
+                    tbody.appendChild(detailRow);
+
+                });
+
+            });
+
+        }
+
+
+
+        function renderCharts(groupedData) {
+
+            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
+
+            const pieLabels = [], pieData = [];
+
+            Object.keys(groupedData).forEach(key => {
+
+                const g = groupedData[key];
+
+                labels.push(key); dataActual.push(g.sumActual); dataIscala.push(g.sumIscala);
+
+                let trend = g.sumIscala > 0 ? ((g.sumActual - g.sumIscala) / g.sumIscala) * 100 : (g.sumActual > 0 ? 100 : 0);
+
+                dataTrend.push(trend.toFixed(1));
+
+                if (g.sumActual !== g.sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
+
+            });
+
+            const barOptions = {
+
+                series: [{ name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }],
+
+                chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true }, animations: { enabled: true, easing: 'easeinout', speed: 800, animateGradually: { enabled: true, delay: 150 }, dynamicAnimation: { enabled: true, speed: 350 } } },
+
+                stroke: { width: [0, 0, 3], curve: 'smooth' },
+
+                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
+
+                plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
+
+                xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
+
+                yaxis: [{ title: { text: 'Số lượng PCS' } }, { show: false }, { opposite: true, title: { text: 'Tỉ lệ lệch %' } }],
+
+                legend: { position: 'top', horizontalAlign: 'right', fontWeight: 700 },
+
+                dataLabels: { enabled: false },
+
+                tooltip: { shared: true, intersect: false }
+
+            };
+
+            if (chartBar) chartBar.destroy();
+
+            chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
+
+            chartBar.render();
+
+            const pieMsg = document.getElementById('pie-empty-msg');
+
+            if (pieData.length > 0) {
+
+                pieMsg.classList.add('hidden');
+
+                const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], legend: { position: 'bottom', fontSize: '11px' }, plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'LỆCH TỔNG', fontSize: '12px', fontWeight: 800 } } } } }, dataLabels: { enabled: true, style: { fontSize: '10px' } } };
+
+                if (chartPie) chartPie.destroy();
+
+                chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
+
+                chartPie.render();
+
+            } else {
+
+                if (chartPie) chartPie.destroy();
+
+                pieMsg.classList.remove('hidden');
+
+            }
+
+        }
+
+
+
+        document.getElementById('filter-input').addEventListener('input', (e) => {
+
+            const keyword = e.target.value.toLowerCase();
+
+            const col = document.getElementById('filter-type').value;
+
+            const filtered = rawData.filter(r => String(r[col]).toLowerCase().includes(keyword));
+
+            renderTable(filtered);
+
+        });
+
+
+
+        function initDashboard(data) {
+
+            updateKPIs(data);
+
+            renderTable(data);
+
+            renderCharts(groupDataByColB(data));
+
+        }
+
+
+
+        fetchData();
+
     </script>
+
 </body>
+
 </html>
