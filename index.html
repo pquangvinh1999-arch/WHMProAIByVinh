@@ -45,7 +45,7 @@
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
-                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis</p>
+                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis By Vinh</p>
             </div>
             <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">AI</span> Finished Goods</h1>
         </div>
@@ -136,14 +136,14 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzeWPAWMKPKJAhXMTX9tljji_LaNBkSxmfMy-H1wPKCHoEm3rDed6p0HrNnoMON5ptw/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwVUDWmt8jCXe-SwHiasrazc_aqJDZF2BJnjnZMfI2agrGntDiBY9GBIF0XjnUlFf8X/exec"; 
         let rawData = [];
         let chartBar, chartPie;
         let userName = "";
 
         // --- HÀM HỎI TÊN KHI VÀO TRANG ---
         window.onload = function() {
-            userName = prompt("Chào mừng anh tới hệ thống! Xin vui lòng cho biết tên của anh:", "Anh Vinh");
+            userName = prompt("Chào mừng anh/chị tới hệ thống! Xin vui lòng cho biết tên của anh/chị:", "");
             if(!userName) userName = "Khách";
             document.getElementById('user-name-label').innerText = "User: " + userName;
             fetchData();
