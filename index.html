@@ -23,14 +23,7 @@
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* CSS NÂNG CẤP CHO CHAT BOX */
-        #ai-response { 
-            max-height: 400px; 
-            overflow-y: auto; 
-            scroll-behavior: smooth;
-            display: none; /* Ẩn lúc đầu */
-        }
+        #ai-response { max-height: 400px; overflow-y: auto; scroll-behavior: smooth; display: none; }
         #ai-response::-webkit-scrollbar { width: 6px; }
         #ai-response::-webkit-scrollbar-thumb { background: #ddd6fe; border-radius: 10px; }
         .chat-bubble-user { background: #ede9fe; border-radius: 15px 15px 0 15px; padding: 8px 12px; margin-bottom: 10px; align-self: flex-end; text-align: right; border: 1px solid #ddd6fe; }
@@ -53,7 +46,6 @@
             <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">AI</span> Finished Goods</h1>
         </div>
         <div class="text-right">
-            <!-- HIỂN THỊ TÊN USER VIP -->
             <div id="user-welcome" class="mb-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 inline-block">
                 Chào, Khách!
             </div>
@@ -65,7 +57,6 @@
         </div>
     </header>
 
-    <!-- KPI SECTION (GIỮ NGUYÊN) -->
     <section class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
         <div class="glass-card kpi-card p-6 border-b-4 border-indigo-500 animate-kpi" style="animation-delay: 0.1s">
             <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Kho</p>
@@ -96,7 +87,6 @@
         </div>
     </section>
 
-    <!-- AI ANALYSIS SECTION (NÂNG CẤP VIP) -->
     <section class="glass-card p-6 mb-10 border-l-4 border-purple-600">
         <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,13 +103,9 @@
                 </svg>
             </button>
         </div>
-        <!-- KHU VỰC LỊCH SỬ CHAT CÓ SCROLL -->
-        <div id="ai-response" class="mt-4 p-4 bg-purple-50 rounded-xl text-sm text-slate-700 border border-purple-100 leading-relaxed flex flex-col">
-            <!-- Chat history will be appended here -->
-        </div>
+        <div id="ai-response" class="mt-4 p-4 bg-purple-50 rounded-xl text-sm text-slate-700 border border-purple-100 leading-relaxed flex flex-col"></div>
     </section>
 
-    <!-- CHARTS SECTION (GIỮ NGUYÊN) -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <div class="glass-card p-6 lg:col-span-2">
             <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
@@ -139,7 +125,6 @@
         </div>
     </section>
 
-    <!-- TABLE SECTION (GIỮ NGUYÊN) -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">CHI TIẾT DỮ LIỆU KHO</h2>
         <div class="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-1 gap-1">
@@ -181,13 +166,11 @@
     </div>
 
     <script>
-        // LINK WEB APP
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQ7WH5wi5K1Cj-aZIvhsORDGtzjjBZxzROVilHh2aSpmxoeg906MmSLahwqR1Pxgtk/exec"; 
         let rawData = [];
         let chartBar, chartPie;
         let currentUserName = "Khách";
 
-        // HÀM HỎI TÊN KHI VÀO WEB
         window.onload = function() {
             const name = prompt("Chào mừng anh/chị tới hệ thống! Vui lòng nhập tên của mình:", "");
             if(name && name.trim() !== "") {
@@ -197,7 +180,6 @@
             fetchData();
         };
 
-        // HỖ TRỢ NHẤN ENTER ĐỂ GỬI CHAT
         document.getElementById('ai-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 chatWithAI();
@@ -227,12 +209,9 @@
 
             const userText = input.value;
             responseDiv.style.display = 'flex';
-            
-            // Thêm tin nhắn người dùng vào lịch sử
             responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>${currentUserName}:</strong> ${userText}</div>`;
             input.value = '';
             
-            // Hiệu ứng loading cho AI
             const loadingId = "loading-" + Date.now();
             responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div> AI đang phân tích dữ liệu...</div></div>`;
             responseDiv.scrollTop = responseDiv.scrollHeight;
@@ -247,13 +226,11 @@
                     })
                 });
                 const result = await response.json();
-                
-                // Xóa loading và thêm câu trả lời AI
                 document.getElementById(loadingId).remove();
                 responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Llama AI:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
                 responseDiv.scrollTop = responseDiv.scrollHeight;
             } catch (e) {
-                document.getElementById(loadingId).innerText = "Có lỗi xảy ra khi kết nối với AI. Vui lòng thử lại!";
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).innerText = "Lỗi kết nối AI!";
             } finally {
                 btn.disabled = false;
             }
