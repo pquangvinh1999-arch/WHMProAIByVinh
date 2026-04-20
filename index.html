@@ -187,18 +187,30 @@
         });
 
         async function fetchData() {
-            document.getElementById('loading').style.display = 'flex';
-            try {
-                const response = await fetch(WEB_APP_URL);
-                const data = await response.json();
-                rawData = data;
-                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
-                initDashboard(rawData);
-            } catch (error) {
-                alert("Lỗi kết nối API. Vui lòng kiểm tra link Deploy.");
-            }
-            document.getElementById('loading').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
+    try {
+        const response = await fetch(WEB_APP_URL);
+        const data = await response.json();
+
+        // KIỂM TRA: Nếu dữ liệu trả về là một mảng (Array) thì mới xử lý
+        if (Array.isArray(data)) {
+            rawData = data;
+            document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+            initDashboard(rawData);
+        } else if (data.error) {
+            // Nếu GAS trả về { error: "..." }, hiện thông báo cụ thể thay vì báo lỗi kết nối
+            console.error("Lỗi từ Server:", data.error);
+            alert("Thông báo từ hệ thống: " + data.error);
+        } else {
+            throw new Error("Định dạng dữ liệu không hợp lệ");
         }
+    } catch (error) {
+        console.error("Lỗi Fetch:", error);
+        alert("Lỗi kết nối API. Vui lòng kiểm tra link Deploy hoặc mạng của bạn.");
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
 
         async function chatWithAI() {
             const input = document.getElementById('ai-input');
