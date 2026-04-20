@@ -92,12 +92,12 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Trò Chuyện Cùng Trợ Lý Llama AI Quản lý Kho Thông Minh
+            Trò Chuyện Cùng Trợ Lý Ncore Quản lý Kho Thông Minh
         </h3>
         <div class="flex gap-3">
-            <input type="text" id="ai-input" placeholder="Ví dụ: Tại sao mã 4183 lệch nhiều nhất? Những Tag ID nào đang bị No Data?" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
+            <input type="text" id="ai-input" placeholder="Hỏi bất kì điều gì liên quan đến kho thành phẩm" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
             <button onclick="chatWithAI()" id="ai-btn" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95 flex items-center gap-2">
-                <span>Hỏi Llama</span>
+                <span>Hỏi Ncore</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
@@ -158,7 +158,7 @@
                         <th class="px-6 py-5">CREATE DATE</th>
                         <th class="px-6 py-5">TAG ID</th>
                         <th class="px-6 py-5">BIN</th>
-                    </tr>
+                    </tr>c
                 </thead>
                 <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
             </table>
@@ -166,7 +166,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx8B5HSe_J62zcwUlAAo8ZputruzQPoj6cJy42RdjSVkZ20_AkBcvMzydu_23ecDTlZ/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxO0XbI_TOtFo-U-c0FzymtRJ1fTaNZUontELR7JnMeDOljmcN0B3qYlAYi51E6H7TK/exec"; 
         let rawData = [];
         let chartBar, chartPie;
         let currentUserName = "Khách";
