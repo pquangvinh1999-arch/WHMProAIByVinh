@@ -7,395 +7,208 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4f46e5; --success: #10b981; --danger: #f43f5e; --warning: #f59e0b; --glory: #8b5cf6; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-        .glass-card { background: #ffffff; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .kpi-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-kpi { animation: slideUp 0.5s ease-out forwards; }
-        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .group-header { background-color: #f1f5f9 !important; border-left: 4px solid var(--primary); }
-        .apexcharts-toolbar { top: -20px !important; right: 0 !important; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #ai-response { max-height: 400px; overflow-y: auto; scroll-behavior: smooth; display: none; }
-        #ai-response::-webkit-scrollbar { width: 6px; }
-        #ai-response::-webkit-scrollbar-thumb { background: #ddd6fe; border-radius: 10px; }
-        .chat-bubble-user { background: #ede9fe; border-radius: 15px 15px 0 15px; padding: 8px 12px; margin-bottom: 10px; align-self: flex-end; text-align: right; border: 1px solid #ddd6fe; }
-        .chat-bubble-ai { background: #ffffff; border-radius: 15px 15px 15px 0; padding: 8px 12px; margin-bottom: 10px; align-self: flex-start; text-align: left; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .glass-card { background: #ffffff; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
         
-        /* Hiệu ứng cho nút Nhập/Xuất kho */
-        .btn-module { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-        .btn-module:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .btn-module:active { transform: scale(0.95); }
+        /* Module Nhập/Xuất chuyên nghiệp */
+        .btn-module-in {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+        }
+        .btn-module-out {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            box-shadow: 0 10px 15px -3px rgba(244, 63, 94, 0.3);
+        }
+        .btn-module:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 20px -5px rgba(0,0,0,0.15); }
+        
+        /* Loading Animation */
+        #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-6 pb-20 max-w-[1600px] mx-auto">
+<body class="p-4 md:p-8">
 
     <div id="loading">
-        <div class="spinner"></div>
-        <p class="font-bold text-indigo-600 animate-pulse">HỆ THỐNG ĐANG ĐỒNG BỘ DỮ LIỆU...</p>
+        <div class="spinner mb-4"></div>
+        <p class="font-bold text-indigo-600 animate-pulse uppercase tracking-widest">Đang tải dữ liệu kho...</p>
     </div>
 
-    <header class="flex justify-between items-end mb-10">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
-                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis By Vinh</p>
-            </div>
-            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">AI</span> Finished Goods</h1>
+            <h1 class="text-3xl font-extrabold text-slate-900">WHMFG <span class="text-indigo-600">AI</span> Dashboard</h1>
+            <p class="text-sm text-slate-400 font-medium">Phát triển bởi <span class="text-slate-900 font-bold">Vinh</span> | Quản lý thành phẩm</p>
         </div>
-        <div class="text-right">
-            <div id="user-welcome" class="mb-3 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 inline-block">
-                Chào, Khách!
-            </div>
-            <div class="flex gap-2 justify-end items-center">
-                <a href="https://pquangvinh1999-arch.github.io/Add-Tag-ID/" target="_blank" class="btn-module bg-emerald-500 text-white px-5 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-emerald-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                    </svg>
-                    NHẬP KHO
-                </a>
-                <a href="https://pquangvinh1999-arch.github.io/Issuing-Tag/" target="_blank" class="btn-module bg-rose-500 text-white px-5 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-rose-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    XUẤT KHO
-                </a>
-                <button onclick="fetchData()" class="btn-module bg-indigo-600 text-white px-5 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-indigo-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    LÀM MỚI
-                </button>
-            </div>
-            <p class="text-[11px] font-medium text-slate-400 mt-2">Cập nhật lần cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
+        <div class="flex gap-3">
+            <a href="#" class="btn-module btn-module-in text-white px-6 py-4 rounded-2xl flex items-center gap-3 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span class="font-extrabold tracking-tight">NHẬP KHO</span>
+            </a>
+            <a href="#" class="btn-module btn-module-out text-white px-6 py-4 rounded-2xl flex items-center gap-3 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                <span class="font-extrabold tracking-tight">XUẤT KHO</span>
+            </a>
         </div>
     </header>
 
-    <section class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
-        <div class="glass-card kpi-card p-6 border-b-4 border-indigo-500 animate-kpi" style="animation-delay: 0.1s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Kho</p>
-            <h3 class="text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
-            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">Thực tế tại kho (PCS)</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 text-center">
+        <div class="glass-card p-5 border-b-4 border-indigo-500">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">TỔNG THỰC TẾ</p>
+            <h2 id="kpi-total-actual" class="text-3xl font-black text-slate-800">0</h2>
         </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-blue-500 animate-kpi" style="animation-delay: 0.2s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
-            <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
-            <div id="kpi-diff-percent" class="text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block">0%</div>
+        <div class="glass-card p-5 border-b-4 border-emerald-500">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">CHÊNH LỆCH</p>
+            <h2 id="kpi-diff" class="text-3xl font-black text-emerald-600">0</h2>
         </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-rose-500 animate-kpi relative group cursor-help" style="animation-delay: 0.3s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag ID Không Khớp</p>
-            <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
-            <p class="text-[10px] text-rose-400 mt-2 italic font-medium">Rê chuột xem danh sách</p>
-            <div id="nodata-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-900 text-white text-[11px] p-4 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto"></div>
+        <div class="glass-card p-5 border-b-4 border-rose-500">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">TAG ID LỖI</p>
+            <h2 id="kpi-nodata" class="text-3xl font-black text-rose-600">0</h2>
         </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-amber-500 animate-kpi" style="animation-delay: 0.4s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
-            <h3 class="text-3xl font-black text-amber-600" id="kpi-notmoved">0</h3>
-            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Hiện tại: 50, 62)</p>
-        </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-red-600 animate-kpi relative group cursor-help" style="animation-delay: 0.5s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Lỗi Trùng Tag ID</p>
-            <h3 class="text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
-            <p class="text-[10px] text-red-400 mt-2 italic font-medium">Rê chuột xem danh sách</p>
-            <div id="duplicate-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-900 text-white text-[11px] p-4 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto"></div>
-        </div>
-    </section>
-
-    <section class="glass-card p-6 mb-10 border-l-4 border-purple-600">
-        <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
-            <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-7.535 5.535a1 1 0 011.415 0 3.535 3.535 0 005 0 1 1 0 011.415 1.415 5.535 5.535 0 01-7.83 0 1 1 0 010-1.415z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            Trò Chuyện Cùng Glory - Trợ Lý Kho Thông Minh
-        </h3>
-        <div class="flex gap-3">
-            <input type="text" id="ai-input" placeholder="Hỏi Glory bất kì điều gì về tồn kho, chênh lệch hoặc vị trí hàng hóa..." class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
-            <button onclick="chatWithAI()" id="ai-btn" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95 flex items-center gap-2">
-                <span>Hỏi Glory</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
-        </div>
-        <div id="ai-response" class="mt-4 p-4 bg-purple-50 rounded-xl text-sm text-slate-700 border border-purple-100 leading-relaxed flex flex-col"></div>
-    </section>
-
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        <div class="glass-card p-6 lg:col-span-2">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
-                <span class="w-1 h-4 bg-indigo-500 rounded-full"></span>
-                So Sánh Actual vs iScala & % Chênh Lệch
-            </h3>
-            <div id="chart-comparison" class="w-full h-80"></div>
-        </div>
-        <div class="glass-card p-6">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
-                <span class="w-1 h-4 bg-rose-500 rounded-full"></span>
-                Phân Tích Rủi Ro (Chênh Lệch)
-            </h3>
-            <div id="chart-pie-risk" class="w-full h-80 flex flex-col justify-center items-center">
-                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.<br>Mọi thứ đang khớp!</p>
-            </div>
-        </div>
-    </section>
-
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Bảng chi tiết tồn kho thành phẩm</h2>
-        <div class="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-1 gap-1">
-            <select id="filter-type" class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 border-none outline-none rounded-xl focus:ring-0">
-                <option value="colB">FEATURE</option>
-                <option value="colE">KHO (WH)</option>
-                <option value="colH">TAG ID</option>
-                <option value="colI">VỊ TRÍ (BIN)</option>
-            </select>
-            <input type="text" id="filter-input" placeholder="Tìm kiếm nhanh..." class="px-4 py-2 w-64 text-sm outline-none font-medium">
-            <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-2 active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                XUẤT EXCEL
-            </button>
+        <div class="glass-card p-5 border-b-4 border-amber-500">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">CHƯA CHUYỂN KHO</p>
+            <h2 id="kpi-notmoved" class="text-3xl font-black text-amber-600">0</h2>
         </div>
     </div>
 
-    <div class="glass-card overflow-hidden">
-        <div class="table-container overflow-x-auto max-h-[650px]">
-            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
-                <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
-                    <tr>
-                        <th class="px-8 py-5">LP NO</th>
-                        <th class="px-6 py-5">FEATURE</th>
-                        <th class="px-6 py-5 text-right">ACTUAL</th>
-                        <th class="px-6 py-5 text-right">ISCALA</th>
-                        <th class="px-6 py-5 text-center">WH LOCATION</th>
-                        <th class="px-6 py-5">STOCK IN DATE</th>
-                        <th class="px-6 py-5">CREATE DATE</th>
-                        <th class="px-6 py-5">TAG ID</th>
-                        <th class="px-6 py-5">BIN</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
-            </table>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card p-6 lg:col-span-2">
+            <h3 class="text-sm font-extrabold text-slate-800 uppercase mb-4">Phân tích thực tế vs Hệ thống</h3>
+            <div id="chart-bar-compare"></div>
         </div>
+        <div class="glass-card p-6">
+            <h3 class="text-sm font-extrabold text-slate-800 uppercase mb-4 text-center">Tỉ trọng rủi ro</h3>
+            <div id="chart-donut-risk"></div>
+        </div>
+    </div>
+
+    <div class="glass-card p-6 mb-8 border-l-8 border-indigo-600">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/></svg></div>
+            <h3 class="font-extrabold text-slate-800">Glory AI Assistant</h3>
+        </div>
+        <div class="flex gap-2">
+            <input type="text" id="ai-input" placeholder="Hỏi Glory về mã hàng, kiện hoặc tag ID..." class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-400 transition-all text-sm">
+            <button onclick="chatWithAI()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200">Hỏi Glory</button>
+        </div>
+        <div id="ai-response" class="mt-4 hidden p-4 bg-indigo-50 rounded-xl text-sm border border-indigo-100 leading-relaxed"></div>
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynMOJ2VxSbZ-k47pCF-GfqLgO2kMmxea1Tn5ziLo2-ZuXN_CR1TY6t5W9masX7keOH/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyVz_F9b_pw6Y1NrT3oKEcTQzIW41W_svhH3jDfeL71h4uVe7ncJnKt2IGQ11jMTdxj/exec";
         let rawData = [];
-        let chartBar, chartPie;
-        let currentUserName = "Khách";
-
-        window.onload = function() {
-            const name = prompt("Chào mừng anh/chị tới hệ thống! Vui lòng nhập tên của mình:", "");
-            if(name && name.trim() !== "") {
-                currentUserName = name.trim();
-            }
-            document.getElementById('user-welcome').innerText = `Chào, ${currentUserName}!`;
-            fetchData();
-        };
-
-        document.getElementById('ai-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                chatWithAI();
-            }
-        });
 
         async function fetchData() {
-            document.getElementById('loading').style.display = 'flex';
             try {
-                const response = await fetch(WEB_APP_URL);
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    rawData = data;
-                    document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
-                    initDashboard(rawData);
-                } else if (data.error) {
-                    alert("Thông báo từ hệ thống: " + data.error);
-                }
-            } catch (error) {
-                alert("Kiểm tra xem dữ liệu đã được cập nhật chưa nhé.");
-            } finally {
+                const res = await fetch(WEB_APP_URL);
+                rawData = await res.json();
+                initDashboard();
                 document.getElementById('loading').style.display = 'none';
-            }
+            } catch (e) { alert("Lỗi tải dữ liệu!"); }
+        }
+
+        function initDashboard() {
+            // Tính toán KPI
+            let actual = 0, iscala = 0, nodata = 0, notmoved = 0;
+            const groups = {};
+
+            rawData.forEach(r => {
+                const act = Number(r.colC) || 0;
+                const isc = r.colD === "No data" ? 0 : Number(r.colD) || 0;
+                actual += act; iscala += isc;
+                if(r.colD === "No data") nodata++;
+                if(r.colE == "50" || r.colE == "62") notmoved++;
+
+                if(!groups[r.colB]) groups[r.colB] = { act: 0, isc: 0 };
+                groups[r.colB].act += act; groups[r.colB].isc += isc;
+            });
+
+            document.getElementById('kpi-total-actual').innerText = actual.toLocaleString();
+            document.getElementById('kpi-diff').innerText = (actual - iscala).toLocaleString();
+            document.getElementById('kpi-nodata').innerText = nodata;
+            document.getElementById('kpi-notmoved').innerText = notmoved;
+
+            renderCharts(groups, actual - iscala);
+        }
+
+        function renderCharts(groups, totalDiff) {
+            const keys = Object.keys(groups);
+            
+            // Bar Chart - Bo góc cực đẹp
+            new ApexCharts(document.querySelector("#chart-bar-compare"), {
+                series: [
+                    { name: 'Thực tế', data: keys.map(k => groups[k].act) },
+                    { name: 'iScala', data: keys.map(k => groups[k].isc) }
+                ],
+                chart: { type: 'bar', height: 350, toolbar: { show: false } },
+                plotOptions: { 
+                    bar: { 
+                        horizontal: false, 
+                        columnWidth: '55%', 
+                        borderRadius: 8, // Bo góc cột đứng
+                        borderRadiusApplication: 'around' 
+                    } 
+                },
+                colors: ['#4f46e5', '#e2e8f0'],
+                xaxis: { categories: keys },
+                legend: { position: 'top' },
+                dataLabels: { enabled: false }
+            }).render();
+
+            // Donut Chart - Có tổng ở giữa
+            new ApexCharts(document.querySelector("#chart-donut-risk"), {
+                series: keys.map(k => Math.abs(groups[k].act - groups[k].isc)),
+                labels: keys,
+                chart: { type: 'donut', height: 380 },
+                colors: ['#4f46e5', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6'],
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '75%',
+                            labels: {
+                                show: true,
+                                name: { show: true, fontSize: '12px', fontWeight: 600 },
+                                value: { show: true, fontSize: '20px', fontWeight: 800, formatter: v => Number(v).toLocaleString() },
+                                total: {
+                                    show: true,
+                                    label: 'TỔNG LỆCH',
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                    color: '#64748b',
+                                    formatter: () => totalDiff.toLocaleString()
+                                }
+                            }
+                        }
+                    }
+                },
+                legend: { position: 'bottom' }
+            }).render();
         }
 
         async function chatWithAI() {
+            const btn = event.target;
             const input = document.getElementById('ai-input');
-            const responseDiv = document.getElementById('ai-response');
-            const btn = document.getElementById('ai-btn');
-            
+            const box = document.getElementById('ai-response');
             if(!input.value) return;
 
-            const userText = input.value;
-            responseDiv.style.display = 'flex';
-            responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>${currentUserName}:</strong> ${userText}</div>`;
-            input.value = '';
-            
-            const loadingId = "loading-" + Date.now();
-            responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div> Glory đang phân tích dữ liệu...</div></div>`;
-            responseDiv.scrollTop = responseDiv.scrollHeight;
-            btn.disabled = true;
+            btn.innerText = "Đang nghĩ..."; btn.disabled = true;
+            box.classList.remove('hidden');
+            box.innerHTML = "<em>Glory đang phân tích dữ liệu kho...</em>";
 
             try {
-                const response = await fetch(WEB_APP_URL, {
+                const res = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        query: userText,
-                        userName: currentUserName,
-                        aiName: "Glory" // Gửi tên AI xuống Apps Script
-                    })
+                    body: JSON.stringify({ query: input.value })
                 });
-                const result = await response.json();
-                document.getElementById(loadingId).remove();
-                
-                // Hiển thị câu trả lời từ Glory
-                responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Glory:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
-                responseDiv.scrollTop = responseDiv.scrollHeight;
-            } catch (e) {
-                if(document.getElementById(loadingId)) document.getElementById(loadingId).innerText = "Glory có lẻ đang bận...chờ tí nhé!";
-            } finally {
-                btn.disabled = false;
-            }
+                const data = await res.json();
+                box.innerHTML = `<strong>Glory:</strong><br>${data.answer.replace(/\n/g, '<br>')}`;
+            } catch (e) { box.innerText = "Lỗi kết nối!"; }
+            
+            btn.innerText = "Hỏi Glory"; btn.disabled = false;
         }
 
-        // --- Các hàm xử lý dữ liệu và Chart giữ nguyên như cũ để đảm bảo tính ổn định ---
-        function exportToExcel() {
-            if (rawData.length === 0) { alert("Không có dữ liệu!"); return; }
-            const columnMap = { colA: "LP NO", colB: "FEATURE", colC: "ACTUAL", colD: "ISCALA", colE: "WH LOCATION", colF: "STOCK IN DATE", colG: "CREATE DATE", colH: "TAG ID", colI: "BIN" };
-            const formattedData = rawData.map(row => {
-                let newRow = {};
-                for (let key in columnMap) { newRow[columnMap[key]] = row[key] || ""; }
-                return newRow;
-            });
-            const worksheet = XLSX.utils.json_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryFG_Data");
-            XLSX.writeFile(workbook, `Inventory_FG_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        function updateKPIs(data) {
-            let totalActual = 0, totalIscala = 0, countNotMoved = 0;
-            let tagIdFreq = {};
-            let noDataTags = [];
-            data.forEach(row => {
-                let actual = Number(row.colC) || 0;
-                let iscalaValue = row.colD;
-                let iscalaNum = (iscalaValue === "No data") ? 0 : (Number(iscalaValue) || 0);
-                totalActual += actual;
-                totalIscala += iscalaNum;
-                if (String(row.colE).toLowerCase().includes("no data")) { noDataTags.push(row.colH || "N/A"); }
-                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
-                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
-            });
-            document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
-            let diff = totalActual - totalIscala;
-            let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
-            const diffEl = document.getElementById('kpi-diff');
-            const diffPercentEl = document.getElementById('kpi-diff-percent');
-            diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
-            diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
-            if (diff === 0) {
-                diffEl.className = "text-3xl font-black text-emerald-500";
-                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600";
-            } else {
-                diffEl.className = "text-3xl font-black text-rose-600";
-                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-50 text-rose-600";
-            }
-            document.getElementById('kpi-nodata').innerText = noDataTags.length;
-            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID KHÔNG KHỚP ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : "Mọi Vị Trí đều khớp!";
-            document.getElementById('kpi-notmoved').innerText = countNotMoved;
-            let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
-            document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
-            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` : "Dữ liệu sạch!";
-        }
-
-        function groupDataByColB(data) {
-            let groups = {};
-            data.forEach(row => {
-                if (!groups[row.colB]) groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0 };
-                groups[row.colB].rows.push(row);
-                groups[row.colB].sumActual += (Number(row.colC) || 0);
-                groups[row.colB].sumIscala += (row.colD === "No data" ? 0 : Number(row.colD) || 0);
-            });
-            return groups;
-        }
-
-        function renderTable(dataToRender) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            if (dataToRender.length === 0) return;
-            const groupedData = groupDataByColB(dataToRender);
-            Object.keys(groupedData).sort().forEach(groupKey => {
-                const group = groupedData[groupKey];
-                let groupRow = document.createElement('tr');
-                groupRow.className = 'group-header';
-                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${group.rows.length} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td><td colspan="5"></td>`;
-                tbody.appendChild(groupRow);
-                group.rows.forEach(row => {
-                    let iscalaDisplay = row.colD === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(row.colD).toLocaleString();
-                    let whLocDisplay = String(row.colE).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE}</span>`;
-                    let detailRow = document.createElement('tr');
-                    detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
-                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td><td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${iscalaDisplay}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td><td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td><td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
-                    tbody.appendChild(detailRow);
-                });
-            });
-        }
-
-        function renderCharts(groupedData) {
-            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
-            const pieLabels = [], pieData = [];
-            Object.keys(groupedData).forEach(key => {
-                const g = groupedData[key];
-                labels.push(key); dataActual.push(g.sumActual); dataIscala.push(g.sumIscala);
-                let trend = g.sumIscala > 0 ? ((g.sumActual - g.sumIscala) / g.sumIscala) * 100 : (g.sumActual > 0 ? 100 : 0);
-                dataTrend.push(trend.toFixed(1));
-                if (g.sumActual !== g.sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
-            });
-            const barOptions = {
-                series: [{ name: 'Thực Tế', type: 'column', data: dataActual }, { name: 'iScala', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }],
-                chart: { height: 320, type: 'line', toolbar: { show: false } },
-                stroke: { width: [0, 0, 3], curve: 'smooth' },
-                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
-                xaxis: { categories: labels },
-                yaxis: [{ title: { text: 'PCS' } }, { show: false }, { opposite: true }],
-                legend: { position: 'top' }
-            };
-            if (chartBar) chartBar.destroy();
-            chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
-            chartBar.render();
-            if (pieData.length > 0) {
-                document.getElementById('pie-empty-msg').classList.add('hidden');
-                const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 } };
-                if (chartPie) chartPie.destroy();
-                chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
-                chartPie.render();
-            } else {
-                document.getElementById('pie-empty-msg').classList.remove('hidden');
-            }
-        }
-
-        document.getElementById('filter-input').addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const col = document.getElementById('filter-type').value;
-            const filtered = rawData.filter(r => String(r[col]).toLowerCase().includes(keyword));
-            renderTable(filtered);
-        });
-
-        function initDashboard(data) {
-            updateKPIs(data);
-            renderTable(data);
-            renderCharts(groupDataByColB(data));
-        }
+        window.onload = fetchData;
     </script>
 </body>
 </html>
