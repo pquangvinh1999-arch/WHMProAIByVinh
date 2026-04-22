@@ -54,26 +54,31 @@
             <div id="user-welcome" class="mb-3 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 inline-block">
                 Chào, Khách!
             </div>
-            <div class="flex gap-2 justify-end items-center">
-                <a href="https://pquangvinh1999-arch.github.io/Add-Tag-ID/" target="_blank" class="btn-module bg-emerald-500 text-white px-5 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-emerald-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                    </svg>
-                    NHẬP KHO
-                </a>
-                <a href="https://pquangvinh1999-arch.github.io/Issuing-Tag/" target="_blank" class="btn-module bg-rose-500 text-white px-5 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-rose-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    XUẤT KHO
-                </a>
-                <button onclick="fetchData()" class="btn-module bg-indigo-600 text-white px-5 py-3 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-indigo-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    LÀM MỚI
-                </button>
-            </div>
+            <div class="flex gap-3 justify-end items-center">
+    <a href="https://pquangvinh1999-arch.github.io/Add-Tag-ID/" target="_blank" 
+       class="btn-module bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-emerald-200/50 hover:shadow-emerald-400/40 border border-emerald-400/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+        </svg>
+        NHẬP KHO (IN)
+    </a>
+
+    <a href="https://pquangvinh1999-arch.github.io/Issuing-Tag/" target="_blank" 
+       class="btn-module bg-gradient-to-r from-rose-500 to-pink-600 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-rose-200/50 hover:shadow-rose-400/40 border border-rose-400/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        XUẤT KHO (OUT)
+    </a>
+
+    <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-5 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-slate-200 hover:bg-slate-900 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        LÀM MỚI
+    </button>
+</div>
             <p class="text-[11px] font-medium text-slate-400 mt-2">Cập nhật lần cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
         </div>
     </header>
@@ -115,7 +120,7 @@
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-7.535 5.535a1 1 0 011.415 0 3.535 3.535 0 005 0 1 1 0 011.415 1.415 5.535 5.535 0 01-7.83 0 1 1 0 010-1.415z" clip-rule="evenodd" />
                 </svg>
             </div>
-            Trò Chuyện Cùng Glory - Trợ Lý Kho Thông Minh (Gemini Flash)
+            Trò Chuyện Cùng Glory - Trợ Lý Kho Thông Minh 
         </h3>
         <div class="flex gap-3">
             <input type="text" id="ai-input" placeholder="Hỏi Glory bất kì điều gì về tồn kho, chênh lệch hoặc vị trí hàng hóa..." class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
