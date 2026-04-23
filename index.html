@@ -1,401 +1,183 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHMFG AI | By Vinh</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root { --primary: #4f46e5; --success: #10b981; --danger: #f43f5e; --warning: #f59e0b; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-        .glass-card { background: #ffffff; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .kpi-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-kpi { animation: slideUp 0.5s ease-out forwards; }
-        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .group-header { background-color: #f1f5f9 !important; border-left: 4px solid var(--primary); }
-        .apexcharts-toolbar { top: -20px !important; right: 0 !important; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #ai-response { max-height: 400px; overflow-y: auto; scroll-behavior: smooth; display: none; }
-        #ai-response::-webkit-scrollbar { width: 6px; }
-        #ai-response::-webkit-scrollbar-thumb { background: #ddd6fe; border-radius: 10px; }
-        .chat-bubble-user { background: #ede9fe; border-radius: 15px 15px 0 15px; padding: 8px 12px; margin-bottom: 10px; align-self: flex-end; text-align: right; border: 1px solid #ddd6fe; }
-        .chat-bubble-ai { background: #ffffff; border-radius: 15px 15px 15px 0; padding: 8px 12px; margin-bottom: 10px; align-self: flex-start; text-align: left; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHMFG Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<style>
+body { font-family: sans-serif; background:#f8fafc }
+.glass { background:white; border-radius:16px; padding:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05)}
+</style>
 </head>
-<body class="p-6 pb-20 max-w-[1600px] mx-auto">
 
-    <div id="loading">
-        <div class="spinner"></div>
-        <p class="font-bold text-indigo-600 animate-pulse">HỆ THỐNG ĐANG ĐỒNG BỘ DỮ LIỆU...</p>
+<body class="p-6">
+
+<h1 class="text-3xl font-bold mb-6">📊 WHM Finished Goods Dashboard</h1>
+
+<!-- KPI -->
+<div class="grid grid-cols-5 gap-4 mb-6">
+    <div class="glass"><b>Total Actual</b><h2 id="kpi-total">0</h2></div>
+    <div class="glass"><b>Diff</b><h2 id="kpi-diff">0</h2></div>
+    <div class="glass"><b>No Data</b><h2 id="kpi-nodata">0</h2></div>
+    <div class="glass"><b>Need Move</b><h2 id="kpi-move">0</h2></div>
+    <div class="glass"><b>Duplicate</b><h2 id="kpi-dup">0</h2></div>
+</div>
+
+<!-- CHART -->
+<div class="grid grid-cols-2 gap-6 mb-6">
+    <div class="glass">
+        <h3 class="font-bold mb-2">Actual vs iScala</h3>
+        <div id="chart-main"></div>
     </div>
 
-    <header class="flex justify-between items-end mb-10">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
-                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis By Vinh</p>
-            </div>
-            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">AI</span> Finished Goods</h1>
-        </div>
-        <div class="text-right">
-            <div id="user-welcome" class="mb-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 inline-block">
-                Chào, Khách!
-            </div>
-            <br>
-            <button onclick="fetchData()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 mb-2">
-                LÀM MỚI DỮ LIỆU
-            </button>
-            <p class="text-sm font-medium text-slate-400">Cập nhật lần cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
-        </div>
-    </header>
-
-    <section class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
-        <div class="glass-card kpi-card p-6 border-b-4 border-indigo-500 animate-kpi" style="animation-delay: 0.1s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Kho</p>
-            <h3 class="text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
-            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">Thực tế tại kho (PCS)</p>
-        </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-blue-500 animate-kpi" style="animation-delay: 0.2s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
-            <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
-            <div id="kpi-diff-percent" class="text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block">0%</div>
-        </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-rose-500 animate-kpi relative group cursor-help" style="animation-delay: 0.3s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag ID Không Khớp</p>
-            <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
-            <p class="text-[10px] text-rose-400 mt-2 italic font-medium">Rê chuột xem danh sách</p>
-            <div id="nodata-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-900 text-white text-[11px] p-4 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto"></div>
-        </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-amber-500 animate-kpi" style="animation-delay: 0.4s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
-            <h3 class="text-3xl font-black text-amber-600" id="kpi-notmoved">0</h3>
-            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Hiện tại: 50, 62)</p>
-        </div>
-        <div class="glass-card kpi-card p-6 border-b-4 border-red-600 animate-kpi relative group cursor-help" style="animation-delay: 0.5s">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Lỗi Trùng Tag ID</p>
-            <h3 class="text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
-            <p class="text-[10px] text-red-400 mt-2 italic font-medium">Rê chuột xem danh sách</p>
-            <div id="duplicate-list-tooltip" class="hidden group-hover:block absolute top-full mt-2 left-0 w-64 bg-slate-900 text-white text-[11px] p-4 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto"></div>
-        </div>
-    </section>
-
-    <section class="glass-card p-6 mb-10 border-l-4 border-purple-600">
-        <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Trò Chuyện Cùng Trợ Lý Llama AI Quản lý Kho Thông Minh
-        </h3>
-        <div class="flex gap-3">
-            <input type="text" id="ai-input" placeholder="Hỏi bất kì điều gì liên quan đến kho thành phẩm" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
-            <button onclick="chatWithAI()" id="ai-btn" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95 flex items-center gap-2">
-                <span>Hỏi Llama</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
-        </div>
-        <div id="ai-response" class="mt-4 p-4 bg-purple-50 rounded-xl text-sm text-slate-700 border border-purple-100 leading-relaxed flex flex-col"></div>
-    </section>
-
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        <div class="glass-card p-6 lg:col-span-2">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
-                <span class="w-1 h-4 bg-indigo-500 rounded-full"></span>
-                So Sánh Actual vs iScala & % Chênh Lệch
-            </h3>
-            <div id="chart-comparison" class="w-full h-80"></div>
-        </div>
-        <div class="glass-card p-6">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
-                <span class="w-1 h-4 bg-rose-500 rounded-full"></span>
-                Phân Tích Rủi Ro (Chênh Lệch)
-            </h3>
-            <div id="chart-pie-risk" class="w-full h-80 flex flex-col justify-center items-center">
-                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.<br>Mọi thứ đang khớp!</p>
-            </div>
-        </div>
-    </section>
-
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">CHI TIẾT DỮ LIỆU KHO</h2>
-        <div class="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-1 gap-1">
-            <select id="filter-type" class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 border-none outline-none rounded-xl focus:ring-0">
-                <option value="colB">FEATURE</option>
-                <option value="colE">KHO (WH)</option>
-                <option value="colH">TAG ID</option>
-                <option value="colI">VỊ TRÍ (BIN)</option>
-            </select>
-            <input type="text" id="filter-input" placeholder="Tìm kiếm nhanh..." class="px-4 py-2 w-64 text-sm outline-none font-medium">
-            <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-2 active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                XUẤT EXCEL
-            </button>
-        </div>
+    <div class="glass">
+        <h3 class="font-bold mb-2">⚠️ Risk by Feature</h3>
+        <div id="chart-risk"></div>
     </div>
+</div>
 
-    <div class="glass-card overflow-hidden">
-        <div class="table-container overflow-x-auto max-h-[650px]">
-            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
-                <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
-                    <tr>
-                        <th class="px-8 py-5">LP NO</th>
-                        <th class="px-6 py-5">FEATURE</th>
-                        <th class="px-6 py-5 text-right">ACTUAL</th>
-                        <th class="px-6 py-5 text-right">ISCALA</th>
-                        <th class="px-6 py-5 text-center">WH LOC</th>
-                        <th class="px-6 py-5">STOCK IN DATE</th>
-                        <th class="px-6 py-5">CREATE DATE</th>
-                        <th class="px-6 py-5">TAG ID</th>
-                        <th class="px-6 py-5">BIN</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
-            </table>
-        </div>
-    </div>
+<!-- TABLE -->
+<div class="glass">
+<table class="w-full text-sm">
+<thead>
+<tr class="bg-gray-100">
+<th>Feature</th>
+<th>Actual</th>
+<th>iScala</th>
+<th>WH</th>
+<th>Tag</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+</div>
 
-    <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxvTgZq5wF3sTpUOKVFXuXBTy-KiU6__msZgsIbDIDYa2zd4rIHtjKjg_pOFEqi5FSh/exec"; 
-        let rawData = [];
-        let chartBar, chartPie;
-        let currentUserName = "Khách";
+<script>
+const URL = "https://script.google.com/macros/s/AKfycby9uO8NOUbIJFCfVbZnen2ziLVL8VOp2oyK3baxlBVdzTmqLN1H_ErDniaofkuovgY/exec";
 
-        window.onload = function() {
-            const name = prompt("Chào mừng anh/chị tới hệ thống! Vui lòng nhập tên của mình:", "");
-            if(name && name.trim() !== "") {
-                currentUserName = name.trim();
-            }
-            document.getElementById('user-welcome').innerText = `Chào, ${currentUserName}!`;
-            fetchData();
-        };
+let raw=[];
 
-        document.getElementById('ai-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                chatWithAI();
-            }
-        });
-
-        async function fetchData() {
-    document.getElementById('loading').style.display = 'flex';
-    try {
-        const response = await fetch(WEB_APP_URL);
-        const data = await response.json();
-
-        // KIỂM TRA: Nếu dữ liệu trả về là một mảng (Array) thì mới xử lý
-        if (Array.isArray(data)) {
-            rawData = data;
-            document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
-            initDashboard(rawData);
-        } else if (data.error) {
-            // Nếu GAS trả về { error: "..." }, hiện thông báo cụ thể thay vì báo lỗi kết nối
-            console.error("Lỗi từ Server:", data.error);
-            alert("Thông báo từ hệ thống: " + data.error);
-        } else {
-            throw new Error("Định dạng dữ liệu không hợp lệ");
-        }
-    } catch (error) {
-        console.error("Lỗi Fetch:", error);
-        alert("Kiểm tra xem dữ liệu đã được cập nhật chưa nhé.");
-    } finally {
-        document.getElementById('loading').style.display = 'none';
-    }
+async function fetchData(){
+    const res = await fetch(URL);
+    const data = await res.json();
+    raw=data;
+    render(data);
 }
 
-        async function chatWithAI() {
-            const input = document.getElementById('ai-input');
-            const responseDiv = document.getElementById('ai-response');
-            const btn = document.getElementById('ai-btn');
-            
-            if(!input.value) return;
+function render(data){
 
-            const userText = input.value;
-            responseDiv.style.display = 'flex';
-            responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>${currentUserName}:</strong> ${userText}</div>`;
-            input.value = '';
-            
-            const loadingId = "loading-" + Date.now();
-            responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div> AI đang phân tích dữ liệu...</div></div>`;
-            responseDiv.scrollTop = responseDiv.scrollHeight;
-            btn.disabled = true;
+    let total=0, totalSys=0;
+    let nodata=0, move=0;
+    let dupMap={};
 
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        query: userText,
-                        userName: currentUserName
-                    })
-                });
-                const result = await response.json();
-                document.getElementById(loadingId).remove();
-                responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Llama AI:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
-                responseDiv.scrollTop = responseDiv.scrollHeight;
-            } catch (e) {
-                if(document.getElementById(loadingId)) document.getElementById(loadingId).innerText = "Lỗi kết nối AI!";
-            } finally {
-                btn.disabled = false;
-            }
+    data.forEach(r=>{
+        total += Number(r.colC)||0;
+        totalSys += Number(r.colD)||0;
+
+        if(String(r.colE).toLowerCase().includes("no data")) nodata++;
+        if(String(r.colE).includes("50")||String(r.colE).includes("62")) move++;
+
+        if(r.colH){
+            dupMap[r.colH]=(dupMap[r.colH]||0)+1;
+        }
+    });
+
+    let dup = Object.values(dupMap).filter(v=>v>1).length;
+
+    document.getElementById('kpi-total').innerText=total;
+    document.getElementById('kpi-diff').innerText=total-totalSys;
+    document.getElementById('kpi-nodata').innerText=nodata;
+    document.getElementById('kpi-move').innerText=move;
+    document.getElementById('kpi-dup').innerText=dup;
+
+    renderTable(data);
+    renderChart(data);
+    renderRisk(data);
+}
+
+function renderTable(data){
+    let html="";
+    data.forEach(r=>{
+        html+=`
+        <tr>
+        <td>${r.colB}</td>
+        <td>${r.colC}</td>
+        <td>${r.colD}</td>
+        <td>${r.colE}</td>
+        <td>${r.colH}</td>
+        </tr>`;
+    });
+    document.getElementById("table").innerHTML=html;
+}
+
+function renderChart(data){
+
+    let group={};
+
+    data.forEach(r=>{
+        if(!group[r.colB]) group[r.colB]={a:0,b:0};
+        group[r.colB].a+=Number(r.colC)||0;
+        group[r.colB].b+=Number(r.colD)||0;
+    });
+
+    let labels=Object.keys(group);
+    let actual=labels.map(k=>group[k].a);
+    let iscala=labels.map(k=>group[k].b);
+
+    new ApexCharts(document.querySelector("#chart-main"),{
+        chart:{type:'bar',height:300},
+        series:[
+            {name:'Actual',data:actual},
+            {name:'iScala',data:iscala}
+        ],
+        xaxis:{categories:labels}
+    }).render();
+}
+
+function renderRisk(data){
+
+    let urgent={}, future={}, dupMap={};
+
+    data.forEach(r=>{
+        if(r.colH){
+            dupMap[r.colH]=(dupMap[r.colH]||0)+1;
+        }
+    });
+
+    data.forEach(r=>{
+        // No data = urgent
+        if(String(r.colE).toLowerCase().includes("no data")){
+            urgent[r.colB]=(urgent[r.colB]||0)+1;
         }
 
-        function exportToExcel() {
-            if (rawData.length === 0) { alert("Không có dữ liệu!"); return; }
-            const columnMap = { colA: "LP NO", colB: "FEATURE", colC: "ACTUAL", colD: "ISCALA", colE: "WH LOCATION", colF: "STOCK IN DATE", colG: "CREATE DATE", colH: "TAG ID", colI: "BIN" };
-            const formattedData = rawData.map(row => {
-                let newRow = {};
-                for (let key in columnMap) { newRow[columnMap[key]] = row[key] || ""; }
-                return newRow;
-            });
-            const worksheet = XLSX.utils.json_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryFG_Data");
-            XLSX.writeFile(workbook, `Inventory_FG_${new Date().toISOString().slice(0,10)}.xlsx`);
+        // duplicate = future
+        if(dupMap[r.colH]>1){
+            future[r.colB]=(future[r.colB]||0)+1;
         }
+    });
 
-        function updateKPIs(data) {
-            let totalActual = 0, totalIscala = 0, countNotMoved = 0;
-            let tagIdFreq = {};
-            let noDataTags = [];
+    let labels=[...new Set([...Object.keys(urgent),...Object.keys(future)])];
 
-            data.forEach(row => {
-                let actual = Number(row.colC) || 0;
-                let iscalaValue = row.colD;
-                let iscalaNum = (iscalaValue === "No data") ? 0 : (Number(iscalaValue) || 0);
-                totalActual += actual;
-                totalIscala += iscalaNum;
-                if (String(row.colE).toLowerCase().includes("no data")) { noDataTags.push(row.colH || "N/A"); }
-                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
-                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
-            });
+    let urgentData=labels.map(l=>urgent[l]||0);
+    let futureData=labels.map(l=>future[l]||0);
 
-            document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
-            let diff = totalActual - totalIscala;
-            let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
-            const diffEl = document.getElementById('kpi-diff');
-            const diffPercentEl = document.getElementById('kpi-diff-percent');
-            diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
-            diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
+    new ApexCharts(document.querySelector("#chart-risk"),{
+        chart:{type:'bar',height:300},
+        series:[
+            {name:'🔴 Urgent (No Data)',data:urgentData},
+            {name:'🟡 Future (Duplicate)',data:futureData}
+        ],
+        xaxis:{categories:labels}
+    }).render();
+}
 
-            if (diff === 0) {
-                diffEl.className = "text-3xl font-black text-emerald-500";
-                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600";
-            } else if (Math.abs(diffPercent) < 5) {
-                diffEl.className = "text-3xl font-black text-amber-500";
-                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-amber-50 text-amber-600";
-            } else {
-                diffEl.className = "text-3xl font-black text-rose-600";
-                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-50 text-rose-600";
-            }
+fetchData();
+</script>
 
-            document.getElementById('kpi-nodata').innerText = noDataTags.length;
-            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 ? 
-                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID KHÔNG KHỚP ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : "Mọi Vị Trí đều khớp!";
-
-            document.getElementById('kpi-notmoved').innerText = countNotMoved;
-            let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
-            document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
-            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 ? 
-                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` : "Dữ liệu sạch!";
-        }
-
-        function groupDataByColB(data) {
-            let groups = {};
-            data.forEach(row => {
-                if (!groups[row.colB]) groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0 };
-                groups[row.colB].rows.push(row);
-                groups[row.colB].sumActual += (Number(row.colC) || 0);
-                groups[row.colB].sumIscala += (row.colD === "No data" ? 0 : Number(row.colD) || 0);
-            });
-            return groups;
-        }
-
-        function renderTable(dataToRender) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            if (dataToRender.length === 0) return;
-            const groupedData = groupDataByColB(dataToRender);
-            Object.keys(groupedData).sort().forEach(groupKey => {
-                const group = groupedData[groupKey];
-                const kienCount = Math.ceil(group.rows.length / 2);
-                let groupRow = document.createElement('tr');
-                groupRow.className = 'group-header';
-                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td><td colspan="5"></td>`;
-                tbody.appendChild(groupRow);
-                group.rows.forEach(row => {
-                    let iscalaVal = row.colD;
-                    let iscalaDisplay = iscalaVal === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(iscalaVal).toLocaleString();
-                    let whLocVal = row.colE;
-                    let whLocDisplay = String(whLocVal).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white border border-rose-700 shadow-sm animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${whLocVal}</span>`;
-                    let detailRow = document.createElement('tr');
-                    detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
-                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td><td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${iscalaDisplay}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td><td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td><td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
-                    tbody.appendChild(detailRow);
-                });
-            });
-        }
-
-        function renderCharts(groupedData) {
-            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
-            const pieLabels = [], pieData = [];
-            Object.keys(groupedData).forEach(key => {
-                const g = groupedData[key];
-                labels.push(key); dataActual.push(g.sumActual); dataIscala.push(g.sumIscala);
-                let trend = g.sumIscala > 0 ? ((g.sumActual - g.sumIscala) / g.sumIscala) * 100 : (g.sumActual > 0 ? 100 : 0);
-                dataTrend.push(trend.toFixed(1));
-                if (g.sumActual !== g.sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
-            });
-            const barOptions = {
-                series: [{ name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }],
-                chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true }, animations: { enabled: true, easing: 'easeinout', speed: 800, animateGradually: { enabled: true, delay: 150 }, dynamicAnimation: { enabled: true, speed: 350 } } },
-                stroke: { width: [0, 0, 3], curve: 'smooth' },
-                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
-                plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
-                xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
-                yaxis: [{ title: { text: 'Số lượng PCS' } }, { show: false }, { opposite: true, title: { text: 'Tỉ lệ lệch %' } }],
-                legend: { position: 'top', horizontalAlign: 'right', fontWeight: 700 },
-                dataLabels: { enabled: false },
-                tooltip: { shared: true, intersect: false }
-            };
-            if (chartBar) chartBar.destroy();
-            chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
-            chartBar.render();
-            const pieMsg = document.getElementById('pie-empty-msg');
-            if (pieData.length > 0) {
-                pieMsg.classList.add('hidden');
-                const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], legend: { position: 'bottom', fontSize: '11px' }, plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'LỆCH TỔNG', fontSize: '12px', fontWeight: 800 } } } } }, dataLabels: { enabled: true, style: { fontSize: '10px' } } };
-                if (chartPie) chartPie.destroy();
-                chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
-                chartPie.render();
-            } else {
-                if (chartPie) chartPie.destroy();
-                pieMsg.classList.remove('hidden');
-            }
-        }
-
-        document.getElementById('filter-input').addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const col = document.getElementById('filter-type').value;
-            const filtered = rawData.filter(r => String(r[col]).toLowerCase().includes(keyword));
-            renderTable(filtered);
-        });
-
-        function initDashboard(data) {
-            updateKPIs(data);
-            renderTable(data);
-            renderCharts(groupDataByColB(data));
-        }
-
-        fetchData();
-    </script>
 </body>
 </html>
