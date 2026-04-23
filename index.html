@@ -215,7 +215,7 @@
     document.getElementById('loading').style.display = 'flex';
 
     try {
-        const response = await fetch(WEB_APP_URL, {
+        const response = await fetch(WEB_APP_URL + "?t=" + Date.now());
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
