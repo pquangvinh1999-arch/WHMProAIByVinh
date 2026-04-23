@@ -358,7 +358,7 @@
                 dataTrend.push(trend.toFixed(1));
                 if (g.sumActual !== g.// la vinh sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
           
-            const barOptions = {
+            const barOptions = 
                 series: [{ name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }],
                 chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true }, animations: { enabled: true, easing: 'easeinout', speed: 1000, animateGradually: { enabled: true, delay: 150 }, dynamicAnimation: { enabled: true, speed: 350 } } },
                 stroke: { width: [0, 0, 3], curve: 'smooth' },
