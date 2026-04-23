@@ -202,40 +202,45 @@
         };
 
        async function fetchData() {
-    document.getElementById('loading').style.display = 'flex';
+    const loadingEl = document.getElementById('loading');
+    loadingEl.style.display = 'flex';
     
-    // Tạo một controller để có thể hủy yêu cầu nếu quá lâu (Timeout)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 giây timeout
-
     try {
-        const response = await fetch(WEB_APP_URL, { signal: controller.signal });
-        clearTimeout(timeoutId); // Hủy timeout nếu nhận được phản hồi
-        
-        const data = await response.json();
+        // Thêm một tham số ngẫu nhiên để tránh việc trình duyệt lưu cache cũ
+        const cacheBuster = "?t=" + new Date().getTime();
+        const response = await fetch(WEB_APP_URL + cacheBuster);
 
-        if (Array.isArray(data)) {
-            rawData = data;
-            document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
-            initDashboard(rawData);
-        } else if (data.error) {
-            alert("Thông báo từ hệ thống: " + data.error);
-        } else {
-            throw new Error("Định dạng dữ liệu không hợp lệ");
+        if (!response.ok) {
+            throw new Error(`Server trả về lỗi: ${response.status} ${response.statusText}`);
         }
+
+        const text = await response.text(); // Lấy dữ liệu dạng văn bản trước để kiểm tra
+        
+        try {
+            const data = JSON.parse(text); // Sau đó mới parse sang JSON
+            
+            if (Array.isArray(data)) {
+                rawData = data;
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+                initDashboard(rawData);
+            } else if (data.error) {
+                alert("Thông báo từ hệ thống: " + data.error);
+            } else {
+                throw new Error("Dữ liệu trả về không phải là mảng (Array)");
+            }
+        } catch (parseError) {
+            console.error("Chi tiết dữ liệu lỗi:", text);
+            throw new Error("Dữ liệu trả về không đúng định dạng JSON. Có thể anh chưa phân quyền 'Anyone' cho Web App.");
+        }
+
     } catch (error) {
-        console.error("Fetch Error:", error);
-        if (error.name === 'AbortError') {
-            alert("Kết nối quá chậm (Timeout). Vui lòng nhấn 'Làm mới' để thử lại.");
-        } else {
-            alert("Lỗi kết nối! Vui lòng kiểm tra lại Deploy Web App và phân quyền Anyone.");
-        }
+        console.error("Full Error:", error);
+        alert("❌ LỖI KẾT NỐI: " + error.message + "\n\nAnh hãy kiểm tra lại: \n1. Link Web App có đúng không?\n2. Đã Deploy phiên bản mới nhất chưa?\n3. Đã chọn 'Who has access: Anyone' chưa?");
     } finally {
-        // ĐẢM BẢO LUÔN TẮT LOADING BẤT KỂ THÀNH CÔNG HAY THẤT BẠI
-        document.getElementById('loading').style.display = 'none';
+        // LUÔN LUÔN tắt loading dù thành công hay thất bại
+        loadingEl.style.display = 'none';
     }
 }
-
         function exportToExcel() {
             if (rawData.length === 0) { alert("Không có dữ liệu!"); return; }
             const columnMap = { colA: "LP NO", colB: "FEATURE", colC: "ACTUAL", colD: "ISCALA", colE: "WH LOCATION", colF: "STOCK IN DATE", colG: "CREATE DATE", colH: "TAG ID", colI: "BIN" };
