@@ -186,7 +186,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwV3F3xyItM4kdB2tVA8w04W6pFkdXP7x1lv1nU-Hh-hat4zw3rD5kmYlPeQZWnXIM/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxMlabBQ3YoesZmwxqQSvlRi5CQm11_Gyi2F5CsURJHu_F0V8UoUWnp8MTBvrA0uG0/exec"; 
 
         let rawData = [];
         let chartBar, chartPie;
@@ -201,28 +201,40 @@
             fetchData();
         };
 
-        async function fetchData() {
-            document.getElementById('loading').style.display = 'flex';
-            try {
-                const response = await fetch(WEB_APP_URL);
-                const data = await response.json();
-                
-                if (Array.isArray(data)) {
-                    rawData = data;
-                    document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
-                    initDashboard(rawData);
-                } else if (data.error) {
-                    alert("Thông báo từ hệ thống: " + data.error);
-                } else {
-                    throw new Error("Định dạng dữ liệu không hợp lệ");
-                }
-            } catch (error) {
-                console.error("Fetch Error:", error);
-                alert("Không thể tải dữ liệu! Vui lòng kiểm tra lại đường link Web App.");
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
+       async function fetchData() {
+    document.getElementById('loading').style.display = 'flex';
+    
+    // Tạo một controller để có thể hủy yêu cầu nếu quá lâu (Timeout)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 giây timeout
+
+    try {
+        const response = await fetch(WEB_APP_URL, { signal: controller.signal });
+        clearTimeout(timeoutId); // Hủy timeout nếu nhận được phản hồi
+        
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+            rawData = data;
+            document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+            initDashboard(rawData);
+        } else if (data.error) {
+            alert("Thông báo từ hệ thống: " + data.error);
+        } else {
+            throw new Error("Định dạng dữ liệu không hợp lệ");
         }
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        if (error.name === 'AbortError') {
+            alert("Kết nối quá chậm (Timeout). Vui lòng nhấn 'Làm mới' để thử lại.");
+        } else {
+            alert("Lỗi kết nối! Vui lòng kiểm tra lại Deploy Web App và phân quyền Anyone.");
+        }
+    } finally {
+        // ĐẢM BẢO LUÔN TẮT LOADING BẤT KỂ THÀNH CÔNG HAY THẤT BẠI
+        document.getElementById('loading').style.display = 'none';
+    }
+}
 
         function exportToExcel() {
             if (rawData.length === 0) { alert("Không có dữ liệu!"); return; }
