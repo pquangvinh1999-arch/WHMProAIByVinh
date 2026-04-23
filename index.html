@@ -9,7 +9,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4f46e5; --success: #10b981; --danger: #f43f5e; --warning: #f59e0b; --glory: #8b5cf6; }
+        :root { --primary: #4f46e5; --success: #10b981; --danger: #f43f5e; --warning: #f59e0b; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
         * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
         .glass-card { background: #ffffff; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -28,9 +28,6 @@
         #ai-response::-webkit-scrollbar-thumb { background: #ddd6fe; border-radius: 10px; }
         .chat-bubble-user { background: #ede9fe; border-radius: 15px 15px 0 15px; padding: 8px 12px; margin-bottom: 10px; align-self: flex-end; text-align: right; border: 1px solid #ddd6fe; }
         .chat-bubble-ai { background: #ffffff; border-radius: 15px 15px 15px 0; padding: 8px 12px; margin-bottom: 10px; align-self: flex-start; text-align: left; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .btn-module { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-        .btn-module:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .btn-module:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="p-6 pb-20 max-w-[1600px] mx-auto">
@@ -49,33 +46,14 @@
             <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">AI</span> Finished Goods</h1>
         </div>
         <div class="text-right">
-            <div id="user-welcome" class="mb-3 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 inline-block">
+            <div id="user-welcome" class="mb-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 inline-block">
                 Chào, Khách!
             </div>
-            <div class="flex gap-3 justify-end items-center">
-                <a href="https://pquangvinh1999-arch.github.io/Add-Tag-ID/" target="_blank" 
-                   class="btn-module bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-emerald-200/50 hover:shadow-emerald-400/40 border border-emerald-400/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                    </svg>
-                    NHẬP KHO (IN)
-                </a>
-                <a href="https://pquangvinh1999-arch.github.io/Issuing-Tag/" target="_blank" 
-                   class="btn-module bg-gradient-to-r from-rose-500 to-pink-600 text-white px-6 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-rose-200/50 hover:shadow-rose-400/40 border border-rose-400/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    XUẤT KHO (OUT)
-                </a>
-                <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-5 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-slate-200 hover:bg-slate-900 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    LÀM MỚI
-                </button>
-            </div>
-            <p class="text-[11px] font-medium text-slate-400 mt-2">Cập nhật lần cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
+            <br>
+            <button onclick="fetchData()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 mb-2">
+                LÀM MỚI DỮ LIỆU
+            </button>
+            <p class="text-sm font-medium text-slate-400">Cập nhật lần cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
         </div>
     </header>
 
@@ -111,17 +89,15 @@
 
     <section class="glass-card p-6 mb-10 border-l-4 border-purple-600">
         <h3 class="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
-            <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-7.535 5.535a1 1 0 011.415 0 3.535 3.535 0 005 0 1 1 0 011.415 1.415 5.535 5.535 0 01-7.83 0 1 1 0 010-1.415z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            Trò Chuyện Cùng Glory - Trợ Lý Kho Thông Minh 
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Trò Chuyện Cùng Trợ Lý Llama AI Quản lý Kho Thông Minh
         </h3>
         <div class="flex gap-3">
-            <input type="text" id="ai-input" placeholder="Hỏi Glory bất kì điều gì về tồn kho, chênh lệch hoặc vị trí hàng hóa..." class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
+            <input type="text" id="ai-input" placeholder="Hỏi bất kì điều gì liên quan đến kho thành phẩm" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 ring-purple-500 transition-all text-sm">
             <button onclick="chatWithAI()" id="ai-btn" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95 flex items-center gap-2">
-                <span>Hỏi Glory</span>
+                <span>Hỏi Llama</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
@@ -150,7 +126,7 @@
     </section>
 
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Bảng chi tiết tồn kho thành phẩm</h2>
+        <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">CHI TIẾT DỮ LIỆU KHO</h2>
         <div class="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-1 gap-1">
             <select id="filter-type" class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 border-none outline-none rounded-xl focus:ring-0">
                 <option value="colB">FEATURE</option>
@@ -177,7 +153,7 @@
                         <th class="px-6 py-5">FEATURE</th>
                         <th class="px-6 py-5 text-right">ACTUAL</th>
                         <th class="px-6 py-5 text-right">ISCALA</th>
-                        <th class="px-6 py-5 text-center">WH LOCATION</th>
+                        <th class="px-6 py-5 text-center">WH LOC</th>
                         <th class="px-6 py-5">STOCK IN DATE</th>
                         <th class="px-6 py-5">CREATE DATE</th>
                         <th class="px-6 py-5">TAG ID</th>
@@ -190,9 +166,8 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynfiCsbiHuDGU9VRGg6iw1Jo7EV0BRbxJ-4VueJ6mqRdkUTJp-w8Fd36MXIS6gyvBH/exec"; 
-
-        let rawData =[];
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbygA19pUAXlpVZBfSsKqSfoSWBCPbDq27GwWY4l2ixWT0itl-02vXTqil9D9HAtodA_/exec"; 
+        let rawData = [];
         let chartBar, chartPie;
         let currentUserName = "Khách";
 
@@ -213,96 +188,45 @@
 
         async function fetchData() {
     document.getElementById('loading').style.display = 'flex';
-
     try {
-        const response = await fetch(WEB_APP_URL + "?t=" + Date.now());
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
+        const response = await fetch(WEB_APP_URL);
+        const data = await response.json();
 
-        const text = await response.text();
-
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch {
-            throw new Error("API không trả JSON. Nội dung: " + text);
+        // KIỂM TRA: Nếu dữ liệu trả về là một mảng (Array) thì mới xử lý
+        if (Array.isArray(data)) {
+            rawData = data;
+            document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+            initDashboard(rawData);
+        } else if (data.error) {
+            // Nếu GAS trả về { error: "..." }, hiện thông báo cụ thể thay vì báo lỗi kết nối
+            console.error("Lỗi từ Server:", data.error);
+            alert("Thông báo từ hệ thống: " + data.error);
+        } else {
+            throw new Error("Định dạng dữ liệu không hợp lệ");
         }
-
-        console.log("DATA:", data);
-
-        if (!Array.isArray(data)) {
-            throw new Error("Data không phải array");
-        }
-
-        if (data.length === 0) {
-            alert("Không có dữ liệu!");
-            return;
-        }
-
-        rawData = data;
-        document.getElementById('last-update').innerText =
-            new Date().toLocaleTimeString('vi-VN');
-
-        initDashboard(rawData);
-
-    } catch (err) {
-        console.error(err);
-        alert("Lỗi load API: " + err.message);
+    } catch (error) {
+        console.error("Lỗi Fetch:", error);
+        alert("Kiểm tra xem dữ liệu đã được cập nhật chưa nhé.");
     } finally {
         document.getElementById('loading').style.display = 'none';
     }
 }
-       async function chatWithAI() {
-    const input = document.getElementById('ai-input');
-    const responseDiv = document.getElementById('ai-response');
-    const btn = document.getElementById('ai-btn');
 
-    if (!input.value.trim()) return;
-
-    const userText = input.value.trim();
-
-    responseDiv.style.display = 'flex';
-    responseDiv.innerHTML += `<div class="chat-bubble-user"><b>Bạn:</b><br>${userText}</div>`;
-
-    const loadingId = "ld-" + Date.now();
-    responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500">Đang xử lý...</div>`;
-
-    input.value = '';
-    btn.disabled = true;
-
-    try {
-        const res = await fetch(WEB_APP_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                query: userText,
-                userName: currentUserName,
-                aiName: "Glory"
-            })
-        });
-
-        const data = await res.json();
-
-        document.getElementById(loadingId).remove();
-
-        if (data.error) throw new Error(data.error);
-
-        responseDiv.innerHTML += `<div class="chat-bubble-ai"><b>Glory:</b><br>${data.answer}</div>`;
-
-    } catch (err) {
-        document.getElementById(loadingId).innerText = "Lỗi: " + err.message;
-    } finally {
-        btn.disabled = false;
-        responseDiv.scrollTop = responseDiv.scrollHeight;
-    }
-}
+        async function chatWithAI() {
+            const input = document.getElementById('ai-input');
+            const responseDiv = document.getElementById('ai-response');
+            const btn = document.getElementById('ai-btn');
             
+            if(!input.value) return;
+
+            const userText = input.value;
+            responseDiv.style.display = 'flex';
+            responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>${currentUserName}:</strong> ${userText}</div>`;
             input.value = '';
+            
+            const loadingId = "loading-" + Date.now();
+            responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div> AI đang phân tích dữ liệu...</div></div>`;
+            responseDiv.scrollTop = responseDiv.scrollHeight;
             btn.disabled = true;
 
             try {
@@ -310,16 +234,15 @@
                     method: 'POST',
                     body: JSON.stringify({
                         query: userText,
-                        userName: currentUserName,
-                        aiName: "Glory"
+                        userName: currentUserName
                     })
                 });
                 const result = await response.json();
                 document.getElementById(loadingId).remove();
-                responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Glory:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
+                responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Llama AI:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
                 responseDiv.scrollTop = responseDiv.scrollHeight;
             } catch (e) {
-                if(document.getElementById(loadingId)) document.getElementById(loadingId).innerText = "Lỗi kết nối tới Glory!";
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).innerText = "Lỗi kết nối AI!";
             } finally {
                 btn.disabled = false;
             }
@@ -339,94 +262,59 @@
             XLSX.writeFile(workbook, `Inventory_FG_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
-        function getIscalaNumber(val) {
-            const str = String(val).trim().toLowerCase();
-            if (str.includes("no data") || str === "" || str === "undefined" || str === "null") return 0;
-            return Number(val) || 0;
-        }
-
-        function isNoData(val) {
-            return String(val).trim().toLowerCase().includes("no data");
-        }
-
         function updateKPIs(data) {
             let totalActual = 0, totalIscala = 0, countNotMoved = 0;
             let tagIdFreq = {};
-            let noDataTags =[];
-            
+            let noDataTags = [];
+
             data.forEach(row => {
                 let actual = Number(row.colC) || 0;
-                let iscalaNum = getIscalaNumber(row.colD);
-                
+                let iscalaValue = row.colD;
+                let iscalaNum = (iscalaValue === "No data") ? 0 : (Number(iscalaValue) || 0);
                 totalActual += actual;
                 totalIscala += iscalaNum;
-                
-                if (isNoData(row.colD)) { 
-                    noDataTags.push(row.colH || "N/A"); 
-                }
-                
-                let whLoc = String(row.colE || "").trim();
-                if (whLoc.includes("50") || whLoc.includes("62")) {
-                    countNotMoved++;
-                }
-                
-                let tagId = String(row.colH || "").trim();
-                if (tagId && tagId !== "undefined" && tagId !== "null") { 
-                    tagIdFreq[tagId] = (tagIdFreq[tagId] || 0) + 1; 
-                }
+                if (String(row.colE).toLowerCase().includes("no data")) { noDataTags.push(row.colH || "N/A"); }
+                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
+                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
             });
 
             document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
             let diff = totalActual - totalIscala;
             let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
-            
             const diffEl = document.getElementById('kpi-diff');
             const diffPercentEl = document.getElementById('kpi-diff-percent');
-            
             diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
             diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
-            
+
             if (diff === 0) {
                 diffEl.className = "text-3xl font-black text-emerald-500";
                 diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600";
+            } else if (Math.abs(diffPercent) < 5) {
+                diffEl.className = "text-3xl font-black text-amber-500";
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-amber-50 text-amber-600";
             } else {
                 diffEl.className = "text-3xl font-black text-rose-600";
-                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-600 text-white";
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-50 text-rose-600";
             }
-            
+
             document.getElementById('kpi-nodata').innerText = noDataTags.length;
-            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 
-                ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG KHÔNG KHỚP ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` 
-                : "Mọi Vị Trí đều khớp!";
-                
+            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 ? 
+                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID KHÔNG KHỚP ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : "Mọi Vị Trí đều khớp!";
+
             document.getElementById('kpi-notmoved').innerText = countNotMoved;
-            
             let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
             document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
-            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 
-                ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` 
-                : "Dữ liệu sạch!";
+            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 ? 
+                `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` : "Dữ liệu sạch!";
         }
 
         function groupDataByColB(data) {
             let groups = {};
             data.forEach(row => {
-                let feature = String(row.colB || "").trim();
-                if (!feature || feature === "undefined" || feature === "null") feature = "KHÔNG RÕ MÃ";
-
-                if (!groups[feature]) groups[feature] = { rows:[], sumActual: 0, sumIscala: 0, maxActual: 0 };
-                
-                groups[feature].rows.push(row);
-                
-                let act = Number(row.colC) || 0;
-                let isc = getIscalaNumber(row.colD);
-                
-                groups[feature].sumActual += act;
-                groups[feature].sumIscala += isc;
-                
-                if (act > groups[feature].maxActual) {
-                    groups[feature].maxActual = act;
-                }
+                if (!groups[row.colB]) groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0 };
+                groups[row.colB].rows.push(row);
+                groups[row.colB].sumActual += (Number(row.colC) || 0);
+                groups[row.colB].sumIscala += (row.colD === "No data" ? 0 : Number(row.colD) || 0);
             });
             return groups;
         }
@@ -434,106 +322,57 @@
         function renderTable(dataToRender) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            if (dataToRender.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="px-6 py-10 text-center text-slate-500 font-bold">Không tìm thấy dữ liệu phù hợp</td></tr>`;
-                return;
-            }
-            
+            if (dataToRender.length === 0) return;
             const groupedData = groupDataByColB(dataToRender);
-            
             Object.keys(groupedData).sort().forEach(groupKey => {
                 const group = groupedData[groupKey];
-                
-                let kienCount = 0;
-                if (group.maxActual > 0) {
-                    kienCount = (group.sumActual / 2) / group.maxActual;
-                }
-                kienCount = parseFloat(kienCount.toFixed(2));
-
+                const kienCount = Math.ceil(group.rows.length / 2);
                 let groupRow = document.createElement('tr');
                 groupRow.className = 'group-header';
-                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td>
-                                      <td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td>
-                                      <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td>
-                                      <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td>
-                                      <td colspan="5"></td>`;
+                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td><td colspan="5"></td>`;
                 tbody.appendChild(groupRow);
-                
                 group.rows.forEach(row => {
-                    let iscalaDisplay = isNoData(row.colD) 
-                        ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` 
-                        : (Number(row.colD) || 0).toLocaleString();
-                        
-                    let whLocDisplay = isNoData(row.colE) 
-                        ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` 
-                        : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE || '-'}</span>`;
-                    
+                    let iscalaVal = row.colD;
+                    let iscalaDisplay = iscalaVal === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(iscalaVal).toLocaleString();
+                    let whLocVal = row.colE;
+                    let whLocDisplay = String(whLocVal).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white border border-rose-700 shadow-sm animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${whLocVal}</span>`;
                     let detailRow = document.createElement('tr');
                     detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
-                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA || '-'}</td>
-                                           <td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB || '-'}</td>
-                                           <td class="px-6 py-4 text-right font-bold">${(Number(row.colC) || 0).toLocaleString()}</td>
-                                           <td class="px-6 py-4 text-right">${iscalaDisplay}</td>
-                                           <td class="px-6 py-4 text-center">${whLocDisplay}</td>
-                                           <td class="px-6 py-4 text-xs text-slate-400">${row.colF || '-'}</td>
-                                           <td class="px-6 py-4 text-[10px] text-slate-300">${row.colG || '-'}</td>
-                                           <td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH || '-'}</td>
-                                           <td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
+                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td><td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${iscalaDisplay}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td><td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td><td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
                     tbody.appendChild(detailRow);
                 });
             });
         }
 
         function renderCharts(groupedData) {
-            const labels = [], dataActual = [], dataIscala =[], dataTrend =[];
-            const pieLabels = [], pieData =[];
-            
+            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
+            const pieLabels = [], pieData = [];
             Object.keys(groupedData).forEach(key => {
                 const g = groupedData[key];
-                labels.push(key); 
-                dataActual.push(g.sumActual); 
-                dataIscala.push(g.sumIscala);
-                
+                labels.push(key); dataActual.push(g.sumActual); dataIscala.push(g.sumIscala);
                 let trend = g.sumIscala > 0 ? ((g.sumActual - g.sumIscala) / g.sumIscala) * 100 : (g.sumActual > 0 ? 100 : 0);
-                dataTrend.push(Number(trend.toFixed(1))); 
-                
-                if (g.sumActual !== g.sumIscala) { 
-                    pieLabels.push(key); 
-                    pieData.push(Math.abs(g.sumActual - g.sumIscala)); 
-                }
+                dataTrend.push(trend.toFixed(1));
+                if (g.sumActual !== g.sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
             });
-            
             const barOptions = {
-                series:[
-                    { name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, 
-                    { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, 
-                    { name: 'Chênh Lệch %', type: 'line', data: dataTrend }
-                ],
-                chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true } },
-                stroke: { width:[0, 0, 3], curve: 'smooth' },
-                colors:['#4f46e5', '#94a3b8', '#f43f5e'],
+                series: [{ name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }],
+                chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true }, animations: { enabled: true, easing: 'easeinout', speed: 800, animateGradually: { enabled: true, delay: 150 }, dynamicAnimation: { enabled: true, speed: 350 } } },
+                stroke: { width: [0, 0, 3], curve: 'smooth' },
+                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
                 plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
                 xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
-                yaxis:[{ title: { text: 'Số lượng PCS' } }, { show: false }, { opposite: true, title: { text: 'Tỉ lệ lệch %' } }],
+                yaxis: [{ title: { text: 'Số lượng PCS' } }, { show: false }, { opposite: true, title: { text: 'Tỉ lệ lệch %' } }],
                 legend: { position: 'top', horizontalAlign: 'right', fontWeight: 700 },
                 dataLabels: { enabled: false },
                 tooltip: { shared: true, intersect: false }
             };
-            
             if (chartBar) chartBar.destroy();
             chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
             chartBar.render();
-            
             const pieMsg = document.getElementById('pie-empty-msg');
             if (pieData.length > 0) {
                 pieMsg.classList.add('hidden');
-                const pieOptions = { 
-                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, 
-                    colors:['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], 
-                    legend: { position: 'bottom', fontSize: '11px' }, 
-                    plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'LỆCH TỔNG', fontSize: '12px', fontWeight: 800 } } } } }, 
-                    dataLabels: { enabled: true, style: { fontSize: '10px' } } 
-                };
+                const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], legend: { position: 'bottom', fontSize: '11px' }, plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'LỆCH TỔNG', fontSize: '12px', fontWeight: 800 } } } } }, dataLabels: { enabled: true, style: { fontSize: '10px' } } };
                 if (chartPie) chartPie.destroy();
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
                 chartPie.render();
@@ -546,7 +385,7 @@
         document.getElementById('filter-input').addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
             const col = document.getElementById('filter-type').value;
-            const filtered = rawData.filter(r => String(r[col] || "").toLowerCase().includes(keyword));
+            const filtered = rawData.filter(r => String(r[col]).toLowerCase().includes(keyword));
             renderTable(filtered);
         });
 
@@ -555,6 +394,8 @@
             renderTable(data);
             renderCharts(groupDataByColB(data));
         }
+
+        fetchData();
     </script>
 </body>
 </html>
