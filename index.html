@@ -238,7 +238,8 @@
 
             const userText = input.value;
             responseDiv.style.display = 'flex';
-            responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>${currentUserName}:</strong> ${userText}</div>`;
+           // Tìm dòng này trong hàm chatWithAI:
+            responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Glory:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
             input.value = '';
             
             const loadingId = "loading-" + Date.now();
