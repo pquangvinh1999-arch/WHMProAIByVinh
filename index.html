@@ -316,50 +316,75 @@
             document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` : "Dữ liệu sạch!";
         }
 
-        function groupDataByColB(data) {
-            let groups = {};
-            data.forEach(row => {
-                if (!groups[row.colB]) {
-                    groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0, maxActual: 0 };
-                }
-                groups[row.colB].rows.push(row);
-                let act = Number(row.colC) || 0;
-                groups[row.colB].sumActual += act;
-                groups[row.colB].sumIscala += (row.colD === "No data" ? 0 : Number(row.colD) || 0);
-                if (act > groups[row.colB].maxActual) groups[row.colB].maxActual = act;
-            });
-            return groups;
+        // Thay thế hàm gom nhóm và render bảng
+function groupDataByColB(data) {
+    let groups = {};
+    data.forEach(row => {
+        let feature = row.colB;
+        if (!groups[feature]) groups[feature] = { rows: [], sumActual: 0, sumIscala: 0, maxActual: 0 };
+        
+        groups[feature].rows.push(row);
+        
+        let act = Number(row.colC) || 0;
+        let isc = row.colD === "No data" ? 0 : (Number(row.colD) || 0);
+        
+        groups[feature].sumActual += act;
+        groups[feature].sumIscala += isc;
+        
+        // Tìm quy cách lớn nhất (Max Actual) của Feature này
+        if (act > groups[feature].maxActual) {
+            groups[feature].maxActual = act;
         }
+    });
+    return groups;
+}
 
-        function renderTable(dataToRender) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            if (dataToRender.length === 0) return;
-            const groupedData = groupDataByColB(dataToRender);
-            Object.keys(groupedData).sort().forEach(groupKey => {
-                const group = groupedData[groupKey];
-                
-                // CÔNG THỨC TÍNH KIỆN CHUẨN: (Tổng Actual / 2) / Quy cách (maxActual)
-                let soKien = 0;
-                if (group.maxActual > 0) {
-                    soKien = (group.sumActual / 2) / group.maxActual;
-                }
-
-                let groupRow = document.createElement('tr');
-                groupRow.className = 'group-header';
-                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${soKien.toFixed(2)} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td><td colspan="5"></td>`;
-                tbody.appendChild(groupRow);
-                
-                group.rows.forEach(row => {
-                    let iscalaDisplay = row.colD === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(row.colD).toLocaleString();
-                    let whLocDisplay = String(row.colE).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE}</span>`;
-                    let detailRow = document.createElement('tr');
-                    detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
-                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td><td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${iscalaDisplay}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td><td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td><td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
-                    tbody.appendChild(detailRow);
-                });
-            });
+function renderTable(dataToRender) {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+    if (dataToRender.length === 0) return;
+    
+    const groupedData = groupDataByColB(dataToRender);
+    
+    Object.keys(groupedData).sort().forEach(groupKey => {
+        const group = groupedData[groupKey];
+        
+        // CÔNG THỨC TÍNH SỐ KIỆN CHUẨN: (Tổng Actual / 2) / Max Actual
+        let kienCount = 0;
+        if (group.maxActual > 0) {
+            kienCount = (group.sumActual / 2) / group.maxActual;
         }
+        // Xóa phần thập phân .0 nếu nó là số chẵn (VD: 6.0 thành 6)
+        kienCount = parseFloat(kienCount.toFixed(2));
+
+        let groupRow = document.createElement('tr');
+        groupRow.className = 'group-header';
+        groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td>
+                              <td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td>
+                              <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td>
+                              <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td>
+                              <td colspan="5"></td>`;
+        tbody.appendChild(groupRow);
+        
+        group.rows.forEach(row => {
+            let iscalaDisplay = row.colD === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(row.colD).toLocaleString();
+            let whLocDisplay = String(row.colE).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE}</span>`;
+            
+            let detailRow = document.createElement('tr');
+            detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
+            detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td>
+                                   <td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td>
+                                   <td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td>
+                                   <td class="px-6 py-4 text-right">${iscalaDisplay}</td>
+                                   <td class="px-6 py-4 text-center">${whLocDisplay}</td>
+                                   <td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td>
+                                   <td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td>
+                                   <td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td>
+                                   <td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
+            tbody.appendChild(detailRow);
+        });
+    });
+}
 
         function renderCharts(groupedData) {
             const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
