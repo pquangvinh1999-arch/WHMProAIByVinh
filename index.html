@@ -190,7 +190,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyJdqD6lWv1T3sNWKqi6H5ziABno8VK86pJ3R_nlq7ADJ0gvVOUJuMt2aWv6WU_mYqi/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_TceVo2zgXw4XmphPii4pwLM0Qkhr3ltjZhgw_4FEJEFm07o0mn2NaaKQozEDmdhH/exec"; 
         let rawData = [];
         let chartBar, chartPie;
         let currentUserName = "Khách";
@@ -331,7 +331,6 @@ function groupDataByColB(data) {
         groups[feature].sumActual += act;
         groups[feature].sumIscala += isc;
         
-        // Tìm quy cách lớn nhất (Max Actual) của Feature này
         if (act > groups[feature].maxActual) {
             groups[feature].maxActual = act;
         }
@@ -349,12 +348,10 @@ function renderTable(dataToRender) {
     Object.keys(groupedData).sort().forEach(groupKey => {
         const group = groupedData[groupKey];
         
-        // CÔNG THỨC TÍNH SỐ KIỆN CHUẨN: (Tổng Actual / 2) / Max Actual
         let kienCount = 0;
         if (group.maxActual > 0) {
             kienCount = (group.sumActual / 2) / group.maxActual;
         }
-        // Xóa phần thập phân .0 nếu nó là số chẵn (VD: 6.0 thành 6)
         kienCount = parseFloat(kienCount.toFixed(2));
 
         let groupRow = document.createElement('tr');
@@ -385,7 +382,6 @@ function renderTable(dataToRender) {
         });
     });
 }
-
         function renderCharts(groupedData) {
             const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
             const pieLabels = [], pieData = [];
