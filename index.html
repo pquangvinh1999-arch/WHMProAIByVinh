@@ -190,7 +190,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz2KVCqsL_Y_n2GhCMbKMNaanTAhu-1w-Uc7ekbUmZjpsiJdjuld6gpNFwcArKyb0xv/exec"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxfVTv-cZBNlZnYYt8Jq0uciaDFVC3jWkCFnAQuYbfO18LI6HtKT9bqa1Mhh1Oh5_VZ/exec"; 
         let rawData = [];
         let chartBar, chartPie;
         let currentUserName = "Khách";
@@ -228,24 +228,23 @@
                 document.getElementById('loading').style.display = 'none';
             }
         }
+async function chatWithAI() {
+    const input = document.getElementById('ai-input');
+    const responseDiv = document.getElementById('ai-response');
+    const btn = document.getElementById('ai-btn');
+    
+    if(!input.value) return;
 
-        async function chatWithAI() {
-            const input = document.getElementById('ai-input');
-            const responseDiv = document.getElementById('ai-response');
-            const btn = document.getElementById('ai-btn');
-            
-            if(!input.value) return;
-
-            const userText = input.value;
-            responseDiv.style.display = 'flex';
-           // Tìm dòng này trong hàm chatWithAI:
-            responseDiv.innerHTML += `<div class="chat-bubble-ai"><strong>Glory:</strong><br>${result.answer.replace(/\n/g, '<br>')}</div>`;
-            input.value = '';
-            
-            const loadingId = "loading-" + Date.now();
-            responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500"><div class="flex items-center gap-2"><div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce"></div> Glory đang phân tích kho...</div></div>`;
-            responseDiv.scrollTop = responseDiv.scrollHeight;
-            btn.disabled = true;
+    const userText = input.value;
+    responseDiv.style.display = 'flex';
+    // KHẮC PHỤC LỖI HIỂN THỊ CỦA ANH TẠI ĐÂY:
+    responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>Bạn:</strong><br>${userText}</div>`;
+    
+    const loadingId = "loading-" + Date.now();
+    responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500">Glory đang phân tích...</div>`;
+    responseDiv.scrollTop = responseDiv.scrollHeight;
+    
+    input.value = '';
 
             try {
                 const response = await fetch(WEB_APP_URL, {
