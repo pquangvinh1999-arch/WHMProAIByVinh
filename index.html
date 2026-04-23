@@ -190,8 +190,9 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxfVTv-cZBNlZnYYt8Jq0uciaDFVC3jWkCFnAQuYbfO18LI6HtKT9bqa1Mhh1Oh5_VZ/exec"; 
-        let rawData = [];
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfBni6BJGzOpsl-oVMECgGmkj7mAmq_kwy697lu9jo_mt92CpsZEAljx8z962XwVJ6/exec"; 
+
+        let rawData =[];
         let chartBar, chartPie;
         let currentUserName = "Khách";
 
@@ -215,36 +216,47 @@
             try {
                 const response = await fetch(WEB_APP_URL);
                 const data = await response.json();
+                
+                console.log("Dữ liệu nhận từ GAS:", data); 
+
                 if (Array.isArray(data)) {
-                    rawData = data;
-                    document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
-                    initDashboard(rawData);
+                    if (data.length === 0) {
+                        alert("Sheet hiện tại không có dữ liệu!");
+                    } else {
+                        rawData = data;
+                        document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+                        initDashboard(rawData);
+                    }
                 } else if (data.error) {
                     alert("Thông báo từ hệ thống: " + data.error);
+                } else {
+                    alert("Định dạng dữ liệu trả về từ Apps Script bị sai lệch!");
                 }
             } catch (error) {
-                alert("Kiểm tra xem dữ liệu đã được cập nhật chưa nhé.");
+                console.error("Fetch Error:", error);
+                alert("Không thể tải dữ liệu! Vui lòng kiểm tra lại đường link Web App.");
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
-async function chatWithAI() {
-    const input = document.getElementById('ai-input');
-    const responseDiv = document.getElementById('ai-response');
-    const btn = document.getElementById('ai-btn');
-    
-    if(!input.value) return;
 
-    const userText = input.value;
-    responseDiv.style.display = 'flex';
-    // KHẮC PHỤC LỖI HIỂN THỊ CỦA ANH TẠI ĐÂY:
-    responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>Bạn:</strong><br>${userText}</div>`;
-    
-    const loadingId = "loading-" + Date.now();
-    responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500">Glory đang phân tích...</div>`;
-    responseDiv.scrollTop = responseDiv.scrollHeight;
-    
-    input.value = '';
+        async function chatWithAI() {
+            const input = document.getElementById('ai-input');
+            const responseDiv = document.getElementById('ai-response');
+            const btn = document.getElementById('ai-btn');
+            
+            if(!input.value) return;
+
+            const userText = input.value;
+            responseDiv.style.display = 'flex';
+            responseDiv.innerHTML += `<div class="chat-bubble-user"><strong>Bạn:</strong><br>${userText}</div>`;
+            
+            const loadingId = "loading-" + Date.now();
+            responseDiv.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai italic text-purple-500">Glory đang phân tích...</div>`;
+            responseDiv.scrollTop = responseDiv.scrollHeight;
+            
+            input.value = '';
+            btn.disabled = true;
 
             try {
                 const response = await fetch(WEB_APP_URL, {
@@ -280,27 +292,53 @@ async function chatWithAI() {
             XLSX.writeFile(workbook, `Inventory_FG_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
+        function getIscalaNumber(val) {
+            const str = String(val).trim().toLowerCase();
+            if (str.includes("no data") || str === "" || str === "undefined" || str === "null") return 0;
+            return Number(val) || 0;
+        }
+
+        function isNoData(val) {
+            return String(val).trim().toLowerCase().includes("no data");
+        }
+
         function updateKPIs(data) {
             let totalActual = 0, totalIscala = 0, countNotMoved = 0;
             let tagIdFreq = {};
-            let noDataTags = [];
+            let noDataTags =[];
+            
             data.forEach(row => {
                 let actual = Number(row.colC) || 0;
-                let iscalaValue = row.colD;
-                let iscalaNum = (iscalaValue === "No data") ? 0 : (Number(iscalaValue) || 0);
+                let iscalaNum = getIscalaNumber(row.colD);
+                
                 totalActual += actual;
                 totalIscala += iscalaNum;
-                if (String(row.colE).toLowerCase().includes("no data")) { noDataTags.push(row.colH || "N/A"); }
-                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
-                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
+                
+                if (isNoData(row.colD)) { 
+                    noDataTags.push(row.colH || "N/A"); 
+                }
+                
+                let whLoc = String(row.colE || "").trim();
+                if (whLoc.includes("50") || whLoc.includes("62")) {
+                    countNotMoved++;
+                }
+                
+                let tagId = String(row.colH || "").trim();
+                if (tagId && tagId !== "undefined" && tagId !== "null") { 
+                    tagIdFreq[tagId] = (tagIdFreq[tagId] || 0) + 1; 
+                }
             });
+
             document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
             let diff = totalActual - totalIscala;
             let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
+            
             const diffEl = document.getElementById('kpi-diff');
             const diffPercentEl = document.getElementById('kpi-diff-percent');
+            
             diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
             diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
+            
             if (diff === 0) {
                 diffEl.className = "text-3xl font-black text-emerald-500";
                 diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600";
@@ -308,109 +346,147 @@ async function chatWithAI() {
                 diffEl.className = "text-3xl font-black text-rose-600";
                 diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-600 text-white";
             }
+            
             document.getElementById('kpi-nodata').innerText = noDataTags.length;
-            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG ID KHÔNG KHỚP ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` : "Mọi Vị Trí đều khớp!";
+            document.getElementById('nodata-list-tooltip').innerHTML = noDataTags.length > 0 
+                ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-rose-400'>DANH SÁCH TAG KHÔNG KHỚP ISCALA:</p><ul class='space-y-1'>${noDataTags.map(t => `<li>• ${t}</li>`).join('')}</ul>` 
+                : "Mọi Vị Trí đều khớp!";
+                
             document.getElementById('kpi-notmoved').innerText = countNotMoved;
+            
             let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
             document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
-            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` : "Dữ liệu sạch!";
+            document.getElementById('duplicate-list-tooltip').innerHTML = duplicateTags.length > 0 
+                ? `<p class='font-bold border-b border-slate-700 pb-1 mb-2 text-red-400'>DANH SÁCH TAG TRÙNG NHAU:</p><ul class='space-y-1'>${duplicateTags.map(t => `<li>• ${t} (x${tagIdFreq[t]})</li>`).join('')}</ul>` 
+                : "Dữ liệu sạch!";
         }
 
-        // Thay thế hàm gom nhóm và render bảng
-function groupDataByColB(data) {
-    let groups = {};
-    data.forEach(row => {
-        let feature = row.colB;
-        if (!groups[feature]) groups[feature] = { rows: [], sumActual: 0, sumIscala: 0, maxActual: 0 };
-        
-        groups[feature].rows.push(row);
-        
-        let act = Number(row.colC) || 0;
-        let isc = row.colD === "No data" ? 0 : (Number(row.colD) || 0);
-        
-        groups[feature].sumActual += act;
-        groups[feature].sumIscala += isc;
-        
-        if (act > groups[feature].maxActual) {
-            groups[feature].maxActual = act;
-        }
-    });
-    return groups;
-}
+        function groupDataByColB(data) {
+            let groups = {};
+            data.forEach(row => {
+                let feature = String(row.colB || "").trim();
+                if (!feature || feature === "undefined" || feature === "null") feature = "KHÔNG RÕ MÃ";
 
-function renderTable(dataToRender) {
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = '';
-    if (dataToRender.length === 0) return;
-    
-    const groupedData = groupDataByColB(dataToRender);
-    
-    Object.keys(groupedData).sort().forEach(groupKey => {
-        const group = groupedData[groupKey];
-        
-        let kienCount = 0;
-        if (group.maxActual > 0) {
-            kienCount = (group.sumActual / 2) / group.maxActual;
+                if (!groups[feature]) groups[feature] = { rows:[], sumActual: 0, sumIscala: 0, maxActual: 0 };
+                
+                groups[feature].rows.push(row);
+                
+                let act = Number(row.colC) || 0;
+                let isc = getIscalaNumber(row.colD);
+                
+                groups[feature].sumActual += act;
+                groups[feature].sumIscala += isc;
+                
+                if (act > groups[feature].maxActual) {
+                    groups[feature].maxActual = act;
+                }
+            });
+            return groups;
         }
-        kienCount = parseFloat(kienCount.toFixed(2));
 
-        let groupRow = document.createElement('tr');
-        groupRow.className = 'group-header';
-        groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td>
-                              <td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td>
-                              <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td>
-                              <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td>
-                              <td colspan="5"></td>`;
-        tbody.appendChild(groupRow);
-        
-        group.rows.forEach(row => {
-            let iscalaDisplay = row.colD === "No data" ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` : Number(row.colD).toLocaleString();
-            let whLocDisplay = String(row.colE).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE}</span>`;
+        function renderTable(dataToRender) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="px-6 py-10 text-center text-slate-500 font-bold">Không tìm thấy dữ liệu phù hợp</td></tr>`;
+                return;
+            }
             
-            let detailRow = document.createElement('tr');
-            detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
-            detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA}</td>
-                                   <td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB}</td>
-                                   <td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td>
-                                   <td class="px-6 py-4 text-right">${iscalaDisplay}</td>
-                                   <td class="px-6 py-4 text-center">${whLocDisplay}</td>
-                                   <td class="px-6 py-4 text-xs text-slate-400">${row.colF}</td>
-                                   <td class="px-6 py-4 text-[10px] text-slate-300">${row.colG}</td>
-                                   <td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td>
-                                   <td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
-            tbody.appendChild(detailRow);
-        });
-    });
-}
+            const groupedData = groupDataByColB(dataToRender);
+            
+            Object.keys(groupedData).sort().forEach(groupKey => {
+                const group = groupedData[groupKey];
+                
+                let kienCount = 0;
+                if (group.maxActual > 0) {
+                    kienCount = (group.sumActual / 2) / group.maxActual;
+                }
+                kienCount = parseFloat(kienCount.toFixed(2));
+
+                let groupRow = document.createElement('tr');
+                groupRow.className = 'group-header';
+                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td>
+                                      <td class="px-6 py-4 text-xs font-bold text-slate-500">${kienCount} Kiện</td>
+                                      <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumActual.toLocaleString()}</td>
+                                      <td class="px-6 py-4 font-black text-slate-800 text-right text-base">${group.sumIscala.toLocaleString()}</td>
+                                      <td colspan="5"></td>`;
+                tbody.appendChild(groupRow);
+                
+                group.rows.forEach(row => {
+                    let iscalaDisplay = isNoData(row.colD) 
+                        ? `<span class="text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">No Data</span>` 
+                        : (Number(row.colD) || 0).toLocaleString();
+                        
+                    let whLocDisplay = isNoData(row.colE) 
+                        ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` 
+                        : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 shadow-sm">${row.colE || '-'}</span>`;
+                    
+                    let detailRow = document.createElement('tr');
+                    detailRow.className = 'hover:bg-slate-50/50 transition-colors border-b border-slate-100';
+                    detailRow.innerHTML = `<td class="px-8 py-4 font-semibold text-slate-500 text-xs">${row.colA || '-'}</td>
+                                           <td class="px-6 py-4 text-slate-400 text-[11px]">${row.colB || '-'}</td>
+                                           <td class="px-6 py-4 text-right font-bold">${(Number(row.colC) || 0).toLocaleString()}</td>
+                                           <td class="px-6 py-4 text-right">${iscalaDisplay}</td>
+                                           <td class="px-6 py-4 text-center">${whLocDisplay}</td>
+                                           <td class="px-6 py-4 text-xs text-slate-400">${row.colF || '-'}</td>
+                                           <td class="px-6 py-4 text-[10px] text-slate-300">${row.colG || '-'}</td>
+                                           <td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH || '-'}</td>
+                                           <td class="px-6 py-4 text-xs text-slate-500">${row.colI || '-'}</td>`;
+                    tbody.appendChild(detailRow);
+                });
+            });
+        }
+
         function renderCharts(groupedData) {
-            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
-            const pieLabels = [], pieData = [];
+            const labels = [], dataActual = [], dataIscala =[], dataTrend =[];
+            const pieLabels = [], pieData =[];
+            
             Object.keys(groupedData).forEach(key => {
                 const g = groupedData[key];
-                labels.push(key); dataActual.push(g.sumActual); dataIscala.push(g.sumIscala);
+                labels.push(key); 
+                dataActual.push(g.sumActual); 
+                dataIscala.push(g.sumIscala);
+                
                 let trend = g.sumIscala > 0 ? ((g.sumActual - g.sumIscala) / g.sumIscala) * 100 : (g.sumActual > 0 ? 100 : 0);
-                dataTrend.push(trend.toFixed(1));
-                if (g.sumActual !== g.sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
+                dataTrend.push(Number(trend.toFixed(1))); 
+                
+                if (g.sumActual !== g.sumIscala) { 
+                    pieLabels.push(key); 
+                    pieData.push(Math.abs(g.sumActual - g.sumIscala)); 
+                }
             });
+            
             const barOptions = {
-                series: [{ name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }],
-                chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true }, animations: { enabled: true, easing: 'easeinout', speed: 800, animateGradually: { enabled: true, delay: 150 }, dynamicAnimation: { enabled: true, speed: 350 } } },
-                stroke: { width: [0, 0, 3], curve: 'smooth' },
-                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
+                series:[
+                    { name: 'Thực Tế (Actual)', type: 'column', data: dataActual }, 
+                    { name: 'Hệ Thống (iScala)', type: 'column', data: dataIscala }, 
+                    { name: 'Chênh Lệch %', type: 'line', data: dataTrend }
+                ],
+                chart: { height: 320, type: 'line', toolbar: { show: true }, zoom: { enabled: true } },
+                stroke: { width:[0, 0, 3], curve: 'smooth' },
+                colors:['#4f46e5', '#94a3b8', '#f43f5e'],
                 plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
                 xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
-                yaxis: [{ title: { text: 'Số lượng PCS' } }, { show: false }, { opposite: true, title: { text: 'Tỉ lệ lệch %' } }],
+                yaxis:[{ title: { text: 'Số lượng PCS' } }, { show: false }, { opposite: true, title: { text: 'Tỉ lệ lệch %' } }],
                 legend: { position: 'top', horizontalAlign: 'right', fontWeight: 700 },
                 dataLabels: { enabled: false },
                 tooltip: { shared: true, intersect: false }
             };
+            
             if (chartBar) chartBar.destroy();
             chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions);
             chartBar.render();
+            
             const pieMsg = document.getElementById('pie-empty-msg');
             if (pieData.length > 0) {
                 pieMsg.classList.add('hidden');
-                const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], legend: { position: 'bottom', fontSize: '11px' }, plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'LỆCH TỔNG', fontSize: '12px', fontWeight: 800 } } } } }, dataLabels: { enabled: true, style: { fontSize: '10px' } } };
+                const pieOptions = { 
+                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, 
+                    colors:['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], 
+                    legend: { position: 'bottom', fontSize: '11px' }, 
+                    plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'LỆCH TỔNG', fontSize: '12px', fontWeight: 800 } } } } }, 
+                    dataLabels: { enabled: true, style: { fontSize: '10px' } } 
+                };
                 if (chartPie) chartPie.destroy();
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions);
                 chartPie.render();
@@ -423,7 +499,7 @@ function renderTable(dataToRender) {
         document.getElementById('filter-input').addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
             const col = document.getElementById('filter-type').value;
-            const filtered = rawData.filter(r => String(r[col]).toLowerCase().includes(keyword));
+            const filtered = rawData.filter(r => String(r[col] || "").toLowerCase().includes(keyword));
             renderTable(filtered);
         });
 
