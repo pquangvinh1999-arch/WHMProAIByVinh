@@ -434,7 +434,7 @@
                 const g = groupedData[key];
                 labels.push(key); dataActual.push(g.sumActual); dataIscala.push(g.sumIscala);
                 let trend = g.sumIscala > 0 ? ((g.sumActual - g.sumIscala) / g.sumIscala) * 100 : (g.sumActual > 0 ? 100 : 0);
-                dataTrend.push(trend.toFixed(1));
+                dataTrend.push(trend.toFixed(1))
                 if (g.sumActual !== g.sumIscala) { pieLabels.push(key); pieData.push(Math.abs(g.sumActual - g.sumIscala)); }
             });
             const barOptions = {
