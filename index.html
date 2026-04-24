@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHMFG PRO | By Vinh 2.1</title>
+    <title>WHMFG PRO | By Vinh 3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -80,6 +80,11 @@
 
         .badge-warning { transition: all 0.2s ease; cursor: default; }
         .badge-warning:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        /* ANIMATION CHO MENU NAVBAR */
+        .btn-module { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .btn-module:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .btn-module:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="p-6 pb-20 max-w-[1600px] mx-auto">
@@ -102,7 +107,30 @@
                 Chào, Khách!
             </div>
             <div class="flex gap-3 justify-end items-center">
-                <button onclick="fetchData()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200 active:scale-95 mb-2">
+                <!-- NÚT NHẬP KHO -->
+                <a href="https://pquangvinh1999-arch.github.io/Add-Tag-ID/" target="_blank" 
+                   class="btn-module bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-200/50 hover:shadow-emerald-400/50 border border-emerald-400/20 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                    NHẬP KHO (IN)
+                </a>
+                
+                <!-- NÚT XUẤT KHO -->
+                <a href="https://pquangvinh1999-arch.github.io/Issuing-Tag/" target="_blank" 
+                   class="btn-module bg-gradient-to-r from-rose-500 to-pink-600 text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-rose-200/50 hover:shadow-rose-400/50 border border-rose-400/20 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    XUẤT KHO (OUT)
+                </a>
+
+                <!-- NÚT LÀM MỚI (Có thêm Icon cho đồng bộ) -->
+                <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-slate-900 transition-all shadow-lg hover:shadow-slate-300 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
                     LÀM MỚI DỮ LIỆU
                 </button>
             </div>
@@ -207,7 +235,7 @@
         </div>
     </section>
 
-    <!-- Biểu Đồ & Bảng (Giữ nguyên cấu trúc của anh) -->
+    <!-- Biểu Đồ & Bảng -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <div class="glass-card p-6 lg:col-span-2">
             <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2">
@@ -375,7 +403,7 @@
         function groupDataByColB(data) {
             let groups = {};
             data.forEach(row => {
-                if (!groups[row.colB]) groups[row.colB] = { rows: [], sumActual: 0, sumIscala: 0, maxActual: 0 };
+                if (!groups[row.colB]) groups[row.colB] = { rows:[], sumActual: 0, sumIscala: 0, maxActual: 0 };
                 groups[row.colB].rows.push(row);
                 
                 let act = Number(row.colC) || 0;
@@ -391,7 +419,6 @@
             return groups;
         }
 
-        // --- CẬP NHẬT RENDER BẢNG PHÂN TÍCH (THAY LIST THÀNH BADGE BẢNG TRẢI RỘNG) ---
         function renderAnalysisPanel(data) {
             const noDataDiv = document.getElementById('analysis-no-data');
             const lowStockDiv = document.getElementById('analysis-low-stock');
@@ -491,7 +518,7 @@
         }
 
         function renderCharts(groupedData) {
-            const labels =[], dataActual = [], dataIscala = [], dataTrend = [];
+            const labels =[], dataActual = [], dataIscala = [], dataTrend =[];
             const pieLabels = [], pieData =[];
             Object.keys(groupedData).forEach(key => {
                 const g = groupedData[key];
